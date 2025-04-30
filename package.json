@@ -1,0 +1,31 @@
+{
+  "name": "risale-nur-dijital",
+  "version": "1.0.0",
+  "description": "Risale-i Nur Dijital Kütüphane",
+  "main": "index.js",
+  "scripts": {
+    "install:all": "npm run install:backend && npm run install:frontend",
+    "install:backend": "cd backend && npm install",
+    "install:frontend": "cd frontend && npm install",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run serve",
+    "build": "cd frontend && npm run build",
+    "start": "cd backend && npm start",
+    "setup:db": "cd backend && node scripts/sync-elasticsearch.js"
+  },
+  "keywords": [
+    "risale-i-nur",
+    "e-kitap",
+    "kütüphane",
+    "vue",
+    "node",
+    "mongodb",
+    "elasticsearch"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "concurrently": "^7.6.0"
+  }
+}
