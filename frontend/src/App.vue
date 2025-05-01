@@ -3,7 +3,7 @@
     <header class="app-header" v-if="!isFullScreen">
       <div class="logo">
         <router-link to="/">
-          <img src="@/assets/images/logo.png" alt="Risale-i Nur Dijital Kütüphane" />
+          <img src="@/assets/images/sözler.png" alt="Risale-i Nur Dijital Kütüphane" style="height: 40px;" />
         </router-link>
       </div>
       <div class="search-bar">

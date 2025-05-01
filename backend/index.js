@@ -29,23 +29,30 @@ mongoose.connect('mongodb://localhost:27017/risaleNurDB', {
 .then(() => console.log('MongoDB bağlantısı başarılı'))
 .catch(err => console.error('MongoDB bağlantı hatası:', err));
 
-// Elasticsearch Bağlantısı
-const esClient = new Client({
-  node: 'http://localhost:9200'
-});
+// Elasticsearch Bağlantısı (opsiyonel)
+let esClient;
+try {
+  esClient = new Client({
+    node: 'http://localhost:9200'
+  });
 
-// Elasticsearch bağlantı kontrolü
-esClient.ping({
-  requestTimeout: 30000,
-}, function(error) {
-  if (error) {
-    console.error('Elasticsearch bağlantı hatası:', error);
-  } else {
-    console.log('Elasticsearch bağlantısı başarılı');
-  }
-});
+  // Elasticsearch bağlantı kontrolü
+  esClient.ping({
+    requestTimeout: 5000,
+  }, function(error) {
+    if (error) {
+      console.warn('Elasticsearch bağlantı hatası: Elasticsearch olmadan devam edilecek');
+      esClient = null;
+    } else {
+      console.log('Elasticsearch bağlantısı başarılı');
+    }
+  });
+} catch (error) {
+  console.warn('Elasticsearch bağlantı hatası: Elasticsearch olmadan devam edilecek');
+  esClient = null;
+}
 
-// Global middleware olarak Elasticsearch client'ı ekle
+// Global middleware olarak Elasticsearch client'ı ekle (eğer bağlantı varsa)
 app.use((req, res, next) => {
   req.esClient = esClient;
   next();

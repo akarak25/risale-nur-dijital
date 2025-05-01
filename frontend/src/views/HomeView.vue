@@ -120,7 +120,26 @@ export default {
         // Ana sayfada gösterilecek öne çıkan kitapları yükle
         // Bu örnek için rastgele 5 kitap gösterelim
         await this.$store.dispatch('fetchBooks');
-        this.featuredBooks = this.$store.state.books.slice(0, 5);
+        let books = this.$store.state.books.slice(0, 5);
+        
+        // Kitap kapak resimlerini manuel olarak ayarla
+        const bookCovers = {
+          'Sözler': require('@/assets/images/sözler.png'),
+          'Mektubat': require('@/assets/images/mektubat.png'),
+          'Lem\'alar': require('@/assets/images/Lemalar.png'),
+          'Şualar': require('@/assets/images/Şualar.png'),
+          'Mesnevî-i Nuriye': require('@/assets/images/Mesnevi i nuriye.png'),
+          'İşarât-ül İ\'caz': require('@/assets/images/sikkei tasdiki gaybi.png'),
+          'Muhakemat': require('@/assets/images/Muhakemat.png')
+        };
+        
+        this.featuredBooks = books.map(book => {
+          // Eğer kitabın başlığı için bir kapak resmi varsa, onu kullan
+          if (bookCovers[book.title]) {
+            book.coverImage = bookCovers[book.title];
+          }
+          return book;
+        });
       } catch (error) {
         console.error("Öne çıkan kitaplar yüklenirken hata oluştu:", error);
       }
@@ -185,6 +204,84 @@ export default {
     margin-bottom: 30px;
     font-size: 1.8rem;
     color: #333;
+  }
+  
+  .bookshelf {
+    display: flex;
+    overflow-x: auto;
+    padding: 20px 0;
+    -webkit-overflow-scrolling: touch;
+    
+    .bookshelf-item {
+      flex: 0 0 auto;
+      width: 180px;
+      margin-right: 30px;
+      cursor: pointer;
+      transition: transform 0.3s;
+      
+      &:hover {
+        transform: scale(1.05);
+      }
+      
+      .book {
+        perspective: 1200px;
+        width: 100%;
+        height: 250px;
+        position: relative;
+        
+        .book-cover {
+          position: relative;
+          width: 100%;
+          height: 100%;
+          transform-style: preserve-3d;
+          transition: transform 0.5s;
+          
+          .cover-front, .cover-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+          }
+          
+          .cover-front {
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            border: 1px solid #ddd;
+          }
+          
+          .cover-back {
+            transform: rotateY(180deg);
+            background-color: #f5f5f5;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            
+            .book-summary {
+              text-align: center;
+              
+              h3 {
+                font-size: 1rem;
+                margin-bottom: 10px;
+              }
+              
+              p {
+                font-size: 0.8rem;
+                line-height: 1.4;
+                color: #666;
+              }
+            }
+          }
+        }
+        
+        &:hover .book-cover {
+          transform: rotateY(180deg);
+        }
+      }
+    }
   }
   
   .book-title {
@@ -289,19 +386,75 @@ export default {
 
 // Kategori ve Özellik İkonları
 .category-sozler {
-  background-image: url('../assets/images/category-sozler.png');
+  background-image: url('../assets/images/sözler.png');
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  width: 60px;
+  height: 60px;
 }
 
 .category-mektubat {
-  background-image: url('../assets/images/category-mektubat.png');
+  background-image: url('../assets/images/mektubat.png');
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  width: 60px;
+  height: 60px;
 }
 
 .category-lemalar {
-  background-image: url('../assets/images/category-lemalar.png');
+  background-image: url('../assets/images/Lemalar.png');
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  width: 60px;
+  height: 60px;
 }
 
 .category-sualar {
-  background-image: url('../assets/images/category-sualar.png');
+  background-image: url('../assets/images/Şualar.png');
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  width: 60px;
+  height: 60px;
+}
+
+.category-isarat-ul-i-caz {
+  background-image: url('../assets/images/sikkei tasdiki gaybi.png');
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  width: 60px;
+  height: 60px;
+}
+
+.category-mesnevi-i-nuriye {
+  background-image: url('../assets/images/Mesnevi i nuriye.png');
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  width: 60px;
+  height: 60px;
+}
+
+.category-barla-lahikasi {
+  background-image: url('../assets/images/Muhakemat.png');
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  width: 60px;
+  height: 60px;
+}
+
+.category-kastamonu-lahikasi, .category-emirdag-lahikasi, .category-diger {
+  background-image: url('../assets/images/Muhakemat.png');
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  width: 60px;
+  height: 60px;
 }
 
 .icon-book:before {
