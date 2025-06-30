@@ -12,7 +12,9 @@
     "dev:frontend": "cd frontend && npm run serve",
     "build": "cd frontend && npm run build",
     "start": "cd backend && npm start",
-    "setup:db": "cd backend && node scripts/sync-elasticsearch.js"
+    "setup:db": "cd backend && node scripts/seed-data.js && node scripts/sync-elasticsearch.js",
+    "seed": "cd backend && node scripts/seed-data.js",
+    "index": "cd backend && node scripts/sync-elasticsearch.js"
   },
   "keywords": [
     "risale-i-nur",
@@ -20,8 +22,7 @@
     "kütüphane",
     "vue",
     "node",
-    "mongodb",
-    "elasticsearch"
+    "mongodb"
   ],
   "author": "",
   "license": "MIT",

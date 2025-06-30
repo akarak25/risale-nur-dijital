@@ -1,185 +1,296 @@
-# Risale-i Nur Dijital Kütüphane
+# Risale-i Nur Dijital Kütüphane - AI Assistant Guide
 
-Risale-i Nur Külliyatını gerçek bir kitap okuma deneyimiyle dijital ortamda sunan, modern web teknolojileri ile geliştirilmiş bir uygulama.
+## 🤖 For AI Models & Assistants
 
-## Proje Açıklaması
+Bu README, AI asistanları ve modellerinin Risale-i Nur Dijital Kütüphane projesini anlayabilmesi ve üzerinde çalışabilmesi için hazırlanmıştır.
 
-Risale-i Nur Dijital Kütüphane, Bediüzzaman Said Nursi'nin Risale-i Nur Külliyatını dijital ortamda gerçek kitap okuma deneyimiyle sunmayı amaçlayan bir projedir. Kullanıcılar, sayfaları fiziksel bir kitap gibi çevirebilir, not alabilir, yer imi ekleyebilir ve külliyat içerisinde arama yapabilirler.
+## 📋 Proje Durumu (Current State)
 
-### Özellikler
+### ✅ Aktif Teknolojiler
+- **Backend**: Node.js/Express.js (Port 3001)
+- **Frontend**: Vue.js 3 (Port 8081)  
+- **Database**: MongoDB (Local - Port 27017)
+- **Search**: MongoDB Text Search (Elasticsearch removed)
 
-- **Gerçekçi Kitap Görünümü**: Sayfa çevirme animasyonu, kağıt dokusu ve kitap kapağı
-- **Kitap Rafı Ana Sayfa**: Külliyatın kitaplarını kategoriler halinde sunan görsel bir kitaplık
-- **Kolay Gezinme**: İçindekiler tablosu, sayfa numarası ve bölümler arası geçiş
-- **Not Alma**: Sayfa kenarlarına notlar ekleyebilme
-- **Yer İmleri**: Önemli sayfalara yer imi koyabilme
-- **Gece Okuma Modu**: Gözü yormayan karanlık tema
-- **Özelleştirilebilir Görünüm**: Yazı boyutu, yazı tipi ve satır aralığı ayarları
-- **Kelime Anlamları**: Metin içindeki kelimelerin anlamlarını görebilme
-- **Tam Ekran Modu**: Dikkat dağıtıcı unsurları kaldıran odaklanmış okuma deneyimi
-- **Mobil Uyumluluk**: Tüm cihazlarda sorunsuz çalışan responsive tasarım
-- **Gelişmiş Arama**: Külliyat içerisinde hızlı ve kapsamlı arama yapabilme
+### ❌ Kaldırılan Bağımlılıklar
+- Elasticsearch (Dependency removed due to installation complexity)
+- Related ES packages in package.json
 
-## Teknoloji Stack
+## 🔧 Yapılan Değişiklikler (AI Assistant Changes)
 
-- **Frontend**: Vue.js 3
-- **Backend**: Node.js / Express.js
-- **Veritabanı**: MongoDB
-- **Arama Motoru**: Elasticsearch
+### 1. Port Konfigürasyonları
+```
+Backend: 3000 → 3001 (Port conflict resolution)
+Frontend: 8080 → 8081 (Auto-assigned by Vue CLI)
+```
 
-## Kurulum
+### 2. Environment Files
+**backend/.env:**
+```
+PORT=3001
+MONGODB_URI=mongodb://localhost:27017/risaleNurDB
+NODE_ENV=development
+```
 
-### Gereksinimler
+**frontend/.env:**
+```
+VUE_APP_API_URL=http://localhost:3001/api
+```
 
-- Node.js (v14+)
-- MongoDB (v4+)
-- Elasticsearch (v7+)
+### 3. Search System Replacement
+- **Removed**: Elasticsearch integration
+- **Added**: `backend/config/simple-search.js` - MongoDB-based search
+- **Modified**: `backend/controllers/searchController.js` - Uses simple search
+- **Updated**: Index creation script - MongoDB text indexes only
 
-### Kurulum Adımları
+### 4. Package Dependencies
+**Removed from backend/package.json:**
+```json
+"elasticsearch": "^16.7.3"
+```
 
-1. Repoyu klonlayın:
-   ```
-   git clone https://github.com/kullaniciadi/risale-nur-dijital.git
-   cd risale-nur-dijital
-   ```
+### 5. Script Updates
+**package.json scripts:**
+```json
+{
+  "setup:db": "cd backend && node scripts/seed-data.js && node scripts/sync-elasticsearch.js",
+  "seed": "cd backend && node scripts/seed-data.js",
+  "index": "cd backend && node scripts/sync-elasticsearch.js"
+}
+```
 
-2. Backend bağımlılıklarını kurun:
-   ```
-   cd backend
-   npm install
-   ```
-
-3. Frontend bağımlılıklarını kurun:
-   ```
-   cd ../frontend
-   npm install
-   ```
-
-4. `.env` dosyasını oluşturun (backend klasöründe):
-   ```
-   PORT=3000
-   MONGODB_URI=mongodb://localhost:27017/risaleNurDB
-   ES_HOST=http://localhost:9200
-   NODE_ENV=development
-   ```
-
-5. MongoDB'yi başlatın:
-   ```
-   mongod
-   ```
-
-6. Elasticsearch'ü başlatın:
-   ```
-   elasticsearch
-   ```
-
-7. Veritabanını ve Elasticsearch indekslerini oluşturun:
-   ```
-   cd backend
-   node scripts/sync-elasticsearch.js
-   ```
-
-8. Backend sunucusunu başlatın:
-   ```
-   npm run dev
-   ```
-
-9. Frontend geliştirme sunucusunu başlatın:
-   ```
-   cd ../frontend
-   npm run serve
-   ```
-
-10. Tarayıcıda uygulamayı açın: `http://localhost:8080`
-
-## İçerik Ekleme
-
-İçerik ekleme işlemi için MongoDB'ye kitap ve sayfa verilerinin eklenmesi gerekir. Bunu aşağıdaki adımlarla yapabilirsiniz:
-
-1. `backend/data` klasöründeki örnek verileri kullanarak içerik ekleyin:
-   ```
-   cd backend
-   node scripts/seed-data.js
-   ```
-
-2. Veya MongoDB Compass gibi bir araç kullanarak JSON formatında verileri içe aktarabilirsiniz.
-
-## Geliştirme
-
-### Klasör Yapısı
+## 🏗️ Proje Mimarisi
 
 ```
 risale-nur-dijital/
-├── backend/
-│   ├── config/        # Elasticsearch ve diğer konfigürasyonlar
-│   ├── controllers/   # API endpoint kontrolcüleri
-│   ├── models/        # Mongoose modelleri
-│   ├── routes/        # API route tanımları
-│   ├── scripts/       # Yardımcı scriptler
-│   └── index.js       # Ana uygulama dosyası
+├── backend/ (Node.js API - Port 3001)
+│   ├── config/
+│   │   ├── simple-search.js (NEW: MongoDB-based search)
+│   │   └── elasticsearch.js (REMOVED: ES config)
+│   ├── controllers/
+│   │   ├── searchController.js (MODIFIED: Uses simple search)
+│   │   ├── bookController.js
+│   │   ├── bookmarkController.js
+│   │   ├── noteController.js
+│   │   └── dictionaryController.js
+│   ├── models/ (Mongoose schemas)
+│   │   ├── Book.js
+│   │   ├── Page.js
+│   │   ├── Bookmark.js
+│   │   ├── Note.js
+│   │   └── Dictionary.js
+│   ├── scripts/
+│   │   ├── seed-data.js (Sample data creation)
+│   │   └── sync-elasticsearch.js (MODIFIED: MongoDB indexes only)
+│   ├── .env (PORT=3001)
+│   └── index.js (MODIFIED: ES dependency removed)
 │
-└── frontend/
-    ├── public/        # Statik dosyalar
-    └── src/
-        ├── assets/    # Resimler, stiller
-        ├── components/# Vue bileşenleri
-        ├── router/    # Vue Router konfigürasyonu
-        ├── store/     # Vuex store
-        └── views/     # Sayfa görünümleri
+├── frontend/ (Vue.js 3 - Port 8081)
+│   ├── src/
+│   │   ├── store/index.js (Vuex - API_URL updated)
+│   │   ├── components/
+│   │   ├── views/
+│   │   └── router/
+│   ├── .env (VUE_APP_API_URL=http://localhost:3001/api)
+│   └── package.json
+│
+├── package.json (MODIFIED: Updated scripts)
+└── README.md (THIS FILE)
 ```
 
-### API Endpointleri
+## 🗄️ Veritabanı Yapısı
 
-#### Kitaplar
-- `GET /api/books` - Tüm kitapları getir
-- `GET /api/books/category/:category` - Kategoriye göre kitapları getir
-- `GET /api/books/:id` - Belirli bir kitabı getir
-- `GET /api/books/:bookId/page/:pageNumber` - Kitap sayfasını getir
-- `GET /api/books/:bookId/contents` - Kitap içindekiler tablosunu getir
+### MongoDB Collections:
+1. **books** - Kitap bilgileri
+2. **pages** - Kitap sayfaları ve içerik
+3. **bookmarks** - Kullanıcı yer imleri  
+4. **notes** - Kullanıcı notları
+5. **dictionaries** - Kelime anlamları
 
-#### Yer İmleri
-- `GET /api/bookmarks/user/:userId` - Kullanıcının tüm yer imlerini getir
-- `GET /api/bookmarks/user/:userId/book/:bookId` - Kitaptaki yer imlerini getir
-- `POST /api/bookmarks` - Yeni yer imi ekle
-- `PUT /api/bookmarks/:id` - Yer imi güncelle
-- `DELETE /api/bookmarks/:id` - Yer imi sil
+### MongoDB Indexes (Text Search):
+```javascript
+// Books collection
+{ title: 'text', description: 'text', author: 'text' }
 
-#### Notlar
-- `GET /api/notes/user/:userId` - Kullanıcının tüm notlarını getir
-- `GET /api/notes/user/:userId/book/:bookId` - Kitaptaki notları getir
-- `GET /api/notes/user/:userId/book/:bookId/page/:pageNumber` - Sayfadaki notları getir
-- `POST /api/notes` - Yeni not ekle
-- `PUT /api/notes/:id` - Not güncelle
-- `DELETE /api/notes/:id` - Not sil
+// Pages collection  
+{ content: 'text', chapter: 'text', subChapter: 'text' }
 
-#### Arama
-- `GET /api/search/basic?query=...` - Basit metin araması
-- `GET /api/search/advanced?query=...&bookId=...&category=...&exactPhrase=...` - Gelişmiş arama
-- `GET /api/search/word/:word` - Kelime anlamı ara
+// Dictionaries collection
+{ word: 'text', meaning: 'text' }
+```
 
-#### Sözlük
-- `GET /api/dictionary` - Tüm sözlük kelimelerini getir
-- `GET /api/dictionary/word/:word` - Belirli bir kelimeyi getir
-- `GET /api/dictionary/search?prefix=...` - Benzer kelimeleri ara
+## 🔌 API Endpoints
 
-## Canlı Demo
+**Base URL**: `http://localhost:3001/api`
 
-[https://risale-nur-dijital.example.com](https://risale-nur-dijital.example.com)
+### Books
+- `GET /books` - Tüm kitaplar
+- `GET /books/:id` - Belirli kitap
+- `GET /books/:bookId/page/:pageNumber` - Kitap sayfası
 
-## Katkıda Bulunma
+### Search (MongoDB-based)
+- `GET /search/basic?query=...` - Basit arama
+- `GET /search/advanced?query=...&bookId=...` - Gelişmiş arama
+- `GET /search/books?query=...` - Kitap araması
 
-1. Bu repo'yu fork edin
-2. Feature branch'i oluşturun (`git checkout -b feature/amazing-feature`)
-3. Değişikliklerinizi commit edin (`git commit -m 'Add some amazing feature'`)
-4. Branch'ınıza push edin (`git push origin feature/amazing-feature`)
-5. Pull request oluşturun
+### Bookmarks
+- `GET /bookmarks/user/:userId` - Kullanıcı yer imleri
+- `POST /bookmarks` - Yeni yer imi
+- `DELETE /bookmarks/:id` - Yer imi sil
 
-## Lisans
+### Notes
+- `GET /notes/user/:userId` - Kullanıcı notları
+- `POST /notes` - Yeni not
+- `DELETE /notes/:id` - Not sil
 
-Bu proje [MIT lisansı](LICENSE) altında lisanslanmıştır.
+### Dictionary
+- `GET /dictionary/word/:word` - Kelime anlamı
 
-## İletişim
+## 🚀 Kurulum Komutları (AI Model Reference)
 
-Proje Yöneticisi - [ornek@email.com](mailto:ornek@email.com)
+### Gereksinimler
+- Node.js 14+
+- MongoDB (Local installation)
+- NO Elasticsearch needed
 
-Proje Link: [https://github.com/kullaniciadi/risale-nur-dijital](https://github.com/kullaniciadi/risale-nur-dijital)
+### Kurulum Sırası
+```bash
+# 1. Bağımlılıkları kur
+npm install
+npm run install:all
+
+# 2. Veritabanını oluştur
+npm run seed        # Örnek veriler
+npm run index       # MongoDB indexes
+
+# 3. Başlat
+npm run dev         # Hem backend hem frontend
+```
+
+### Manuel Başlatma
+```bash
+# Backend (Terminal 1)
+cd backend
+npm run dev         # Port 3001
+
+# Frontend (Terminal 2)  
+cd frontend
+npm run serve       # Port 8081
+```
+
+## 🔧 Sorun Giderme (AI Reference)
+
+### Port Çakışması
+- Backend default: 3001
+- Frontend auto-assign: 8081
+- MongoDB: 27017
+
+### MongoDB Bağlantı
+```javascript
+// Test connection
+mongoose.connect('mongodb://localhost:27017/risaleNurDB')
+```
+
+### Index Conflicts
+```bash
+# Temizle ve yeniden oluştur
+npm run index
+```
+
+## 📊 Özellikler (AI Understanding)
+
+### Çalışan Özellikler
+- ✅ Kitap görüntüleme (Turn.js sayfa çevirme)
+- ✅ Not alma sistemi
+- ✅ Yer imi sistemi  
+- ✅ MongoDB tabanlı arama
+- ✅ Sözlük entegrasyonu
+- ✅ Kullanıcı ayarları (localStorage)
+- ✅ Responsive tasarım
+
+### Arama Sistemi (MongoDB-based)
+```javascript
+// Backend: simple-search.js
+- Text search with regex
+- Category filtering
+- Fuzzy matching
+- Turkish character support
+```
+
+### Frontend State (Vuex)
+```javascript
+// Store structure
+state: {
+  books: [],
+  currentBook: null,
+  currentPage: null,
+  bookmarks: [],
+  notes: [],
+  userSettings: {},
+  searchResults: []
+}
+```
+
+## 🎯 AI Assistant Tasks
+
+AI models can help with:
+
+1. **Code Debugging**: Fix Vue.js/Node.js issues
+2. **Feature Development**: Add new functionality
+3. **Database Operations**: MongoDB queries and schemas
+4. **Search Improvements**: Enhance MongoDB text search
+5. **UI/UX Enhancements**: Vue component improvements
+6. **Performance Optimization**: Query optimization
+7. **Error Handling**: Better error management
+8. **Testing**: Add unit/integration tests
+
+## 🔍 Development Context
+
+### Known Issues
+- Sass deprecation warnings (non-breaking)
+- MongoDB index conflicts (resolved in sync script)
+- Turn.js jQuery dependency (working)
+
+### Technical Debt
+- No authentication system
+- No user management
+- No real-time features
+- Limited error handling
+
+### Improvement Areas
+- Add TypeScript
+- Implement caching
+- Add testing framework
+- Improve search relevance
+- Add pagination
+
+## 📚 Sample Data Structure
+
+### Book Document
+```json
+{
+  "_id": "ObjectId",
+  "title": "Sözler",
+  "author": "Bediüzzaman Said Nursi",
+  "category": "Risale-i Nur",
+  "description": "...",
+  "pageCount": 850,
+  "publishYear": 1926
+}
+```
+
+### Page Document
+```json
+{
+  "_id": "ObjectId", 
+  "bookId": "ObjectId",
+  "pageNumber": 1,
+  "content": "Sayfa içeriği...",
+  "chapter": "Birinci Söz",
+  "subChapter": "Giriş"
+}
+```
+
+---
+
+**Note for AI Models**: This project is a functional digital library for Risale-i Nur works. MongoDB is required but Elasticsearch has been replaced with simple MongoDB text search. All necessary scripts and configurations are provided above.
