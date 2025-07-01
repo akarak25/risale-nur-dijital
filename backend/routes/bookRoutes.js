@@ -23,4 +23,10 @@ router.post('/', bookController.addBook);
 // Kitap sayfası ekle (Admin)
 router.post('/page', bookController.addBookPage);
 
+// Kitap güncelle (Admin)
+router.put('/:id', bookController.updateBook);
+
+// Kitap sil (Admin)
+router.delete('/:id', bookController.deleteBook);
+
 module.exports = router;

@@ -30,6 +30,21 @@ Frontend: 8080 → 8081 (Auto-assigned by Vue CLI)
 PORT=3001
 MONGODB_URI=mongodb://localhost:27017/risaleNurDB
 NODE_ENV=development
+
+# JWT Configuration
+JWT_SECRET=your_very_secure_secret_key_here
+JWT_EXPIRE=30d
+
+# Email Configuration
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_SECURE=false
+EMAIL_USER=your_email@gmail.com
+EMAIL_PASS=your_app_password
+EMAIL_FROM=Risale-i Nur Digital <noreply@risalenur.com>
+
+# Frontend URL
+FRONTEND_URL=http://localhost:8080
 ```
 
 **frontend/.env:**
@@ -47,6 +62,14 @@ VUE_APP_API_URL=http://localhost:3001/api
 **Removed from backend/package.json:**
 ```json
 "elasticsearch": "^16.7.3"
+```
+
+**Added to backend/package.json:**
+```json
+"bcryptjs": "^2.4.3",
+"jsonwebtoken": "^9.0.2",
+"express-validator": "^7.0.1",
+"nodemailer": "^6.9.7"
 ```
 
 ### 5. Script Updates
@@ -68,17 +91,30 @@ risale-nur-dijital/
 │   │   ├── simple-search.js (NEW: MongoDB-based search)
 │   │   └── elasticsearch.js (REMOVED: ES config)
 │   ├── controllers/
+│   │   ├── authController.js (NEW: Authentication)
 │   │   ├── searchController.js (MODIFIED: Uses simple search)
 │   │   ├── bookController.js
-│   │   ├── bookmarkController.js
-│   │   ├── noteController.js
+│   │   ├── bookmarkController.js (MODIFIED: Auth required)
+│   │   ├── noteController.js (MODIFIED: Auth required)
 │   │   └── dictionaryController.js
 │   ├── models/ (Mongoose schemas)
+│   │   ├── User.js (NEW: User authentication)
 │   │   ├── Book.js
 │   │   ├── Page.js
-│   │   ├── Bookmark.js
-│   │   ├── Note.js
+│   │   ├── Bookmark.js (MODIFIED: userId as ObjectId)
+│   │   ├── Note.js (MODIFIED: userId as ObjectId)
 │   │   └── Dictionary.js
+│   ├── middleware/
+│   │   └── auth.js (NEW: JWT verification)
+│   ├── utils/
+│   │   └── emailService.js (NEW: Email sending)
+│   ├── routes/
+│   │   ├── authRoutes.js (NEW: Auth endpoints)
+│   │   ├── bookRoutes.js
+│   │   ├── bookmarkRoutes.js (MODIFIED: Protected)
+│   │   ├── noteRoutes.js (MODIFIED: Protected)
+│   │   ├── searchRoutes.js
+│   │   └── dictionaryRoutes.js
 │   ├── scripts/
 │   │   ├── seed-data.js (Sample data creation)
 │   │   └── sync-elasticsearch.js (MODIFIED: MongoDB indexes only)
@@ -87,10 +123,22 @@ risale-nur-dijital/
 │
 ├── frontend/ (Vue.js 3 - Port 8081)
 │   ├── src/
-│   │   ├── store/index.js (Vuex - API_URL updated)
-│   │   ├── components/
+│   │   ├── store/
+│   │   │   ├── index.js (MODIFIED: Added auth module)
+│   │   │   └── modules/
+│   │   │       └── auth.js (NEW: Auth state management)
+│   │   ├── utils/
+│   │   │   ├── axios.js (NEW: Axios interceptors)
+│   │   │   └── auth.js (NEW: Auth helpers)
 │   │   ├── views/
-│   │   └── router/
+│   │   │   ├── LoginView.vue (NEW)
+│   │   │   ├── RegisterView.vue (NEW)
+│   │   │   ├── ProfileView.vue (NEW)
+│   │   │   ├── ForgotPasswordView.vue (NEW)
+│   │   │   └── ... (existing views)
+│   │   ├── router/index.js (MODIFIED: Auth guards)
+│   │   ├── App.vue (MODIFIED: Auth navigation)
+│   │   └── components/
 │   ├── .env (VUE_APP_API_URL=http://localhost:3001/api)
 │   └── package.json
 │
@@ -101,11 +149,12 @@ risale-nur-dijital/
 ## 🗄️ Veritabanı Yapısı
 
 ### MongoDB Collections:
-1. **books** - Kitap bilgileri
-2. **pages** - Kitap sayfaları ve içerik
-3. **bookmarks** - Kullanıcı yer imleri  
-4. **notes** - Kullanıcı notları
-5. **dictionaries** - Kelime anlamları
+1. **users** - Kullanıcı hesapları (NEW)
+2. **books** - Kitap bilgileri
+3. **pages** - Kitap sayfaları ve içerik
+4. **bookmarks** - Kullanıcı yer imleri (Auth required)
+5. **notes** - Kullanıcı notları (Auth required)
+6. **dictionaries** - Kelime anlamları
 
 ### MongoDB Indexes (Text Search):
 ```javascript
@@ -123,6 +172,18 @@ risale-nur-dijital/
 
 **Base URL**: `http://localhost:3001/api`
 
+### Authentication (NEW)
+- `POST /auth/register` - Yeni kullanıcı kaydı
+- `POST /auth/login` - Kullanıcı girişi
+- `POST /auth/logout` - Çıkış (Protected)
+- `GET /auth/me` - Mevcut kullanıcı bilgisi (Protected)
+- `PUT /auth/updateprofile` - Profil güncelleme (Protected)
+- `PUT /auth/updatepassword` - Şifre değiştirme (Protected)
+- `PUT /auth/updatepreferences` - Tercih güncelleme (Protected)
+- `POST /auth/forgotpassword` - Şifremi unuttum
+- `PUT /auth/resetpassword/:token` - Şifre sıfırlama
+- `GET /auth/verifyemail/:token` - Email doğrulama
+
 ### Books
 - `GET /books` - Tüm kitaplar
 - `GET /books/:id` - Belirli kitap
@@ -133,14 +194,19 @@ risale-nur-dijital/
 - `GET /search/advanced?query=...&bookId=...` - Gelişmiş arama
 - `GET /search/books?query=...` - Kitap araması
 
-### Bookmarks
-- `GET /bookmarks/user/:userId` - Kullanıcı yer imleri
+### Bookmarks (🔒 Protected)
+- `GET /bookmarks/my` - Kullanıcının yer imleri
+- `GET /bookmarks/book/:bookId` - Kitaptaki yer imleri
 - `POST /bookmarks` - Yeni yer imi
+- `PUT /bookmarks/:id` - Yer imi güncelle
 - `DELETE /bookmarks/:id` - Yer imi sil
 
-### Notes
-- `GET /notes/user/:userId` - Kullanıcı notları
+### Notes (🔒 Protected)
+- `GET /notes/my` - Kullanıcının notları
+- `GET /notes/book/:bookId` - Kitaptaki notlar
+- `GET /notes/book/:bookId/page/:pageNumber` - Sayfadaki notlar
 - `POST /notes` - Yeni not
+- `PUT /notes/:id` - Not güncelle
 - `DELETE /notes/:id` - Not sil
 
 ### Dictionary
@@ -200,13 +266,18 @@ npm run index
 ## 📊 Özellikler (AI Understanding)
 
 ### Çalışan Özellikler
+- ✅ Kullanıcı authentication sistemi (JWT)
+- ✅ Email doğrulama ve şifre sıfırlama
+- ✅ Kullanıcı profil yönetimi
 - ✅ Kitap görüntüleme (Turn.js sayfa çevirme)
-- ✅ Not alma sistemi
-- ✅ Yer imi sistemi  
+- ✅ Kişiselleştirilmiş not alma sistemi
+- ✅ Kişiselleştirilmiş yer imi sistemi  
 - ✅ MongoDB tabanlı arama
 - ✅ Sözlük entegrasyonu
-- ✅ Kullanıcı ayarları (localStorage)
+- ✅ Kullanıcı tercihleri (veritabanında saklanır)
+- ✅ Okuma istatistikleri
 - ✅ Responsive tasarım
+- ✅ 3 tema desteği (light, dark, sepia)
 
 ### Arama Sistemi (MongoDB-based)
 ```javascript
@@ -219,7 +290,7 @@ npm run index
 
 ### Frontend State (Vuex)
 ```javascript
-// Store structure
+// Main store structure
 state: {
   books: [],
   currentBook: null,
@@ -227,7 +298,18 @@ state: {
   bookmarks: [],
   notes: [],
   userSettings: {},
-  searchResults: []
+  searchResults: [],
+  loading: false,
+  error: null,
+  notification: null
+}
+
+// Auth module state
+auth: {
+  token: null,
+  user: null,
+  loading: false,
+  error: null
 }
 ```
 
@@ -252,10 +334,13 @@ AI models can help with:
 - Turn.js jQuery dependency (working)
 
 ### Technical Debt
-- No authentication system
-- No user management
+- ~~No authentication system~~ ✅ Implemented
+- ~~No user management~~ ✅ Implemented
 - No real-time features
 - Limited error handling
+- No rate limiting
+- No API documentation (Swagger)
+- No automated tests
 
 ### Improvement Areas
 - Add TypeScript
@@ -265,6 +350,36 @@ AI models can help with:
 - Add pagination
 
 ## 📚 Sample Data Structure
+
+### User Document (NEW)
+```json
+{
+  "_id": "ObjectId",
+  "name": "Ahmet Yılmaz",
+  "email": "ahmet@example.com",
+  "password": "$2a$10$...(bcrypt hash)",
+  "role": "user",
+  "isActive": true,
+  "isEmailVerified": true,
+  "preferences": {
+    "fontSize": 16,
+    "fontFamily": "Noto Serif",
+    "lineHeight": 1.6,
+    "theme": "light",
+    "pageAnimations": true,
+    "pageSound": true
+  },
+  "readingHistory": [
+    {
+      "bookId": "ObjectId",
+      "lastPage": 125,
+      "lastReadAt": "2024-01-15T10:30:00Z"
+    }
+  ],
+  "createdAt": "2024-01-01T12:00:00Z",
+  "updatedAt": "2024-01-15T10:30:00Z"
+}
+```
 
 ### Book Document
 ```json
@@ -291,6 +406,36 @@ AI models can help with:
 }
 ```
 
+### Bookmark Document (MODIFIED)
+```json
+{
+  "_id": "ObjectId",
+  "userId": "ObjectId",
+  "bookId": "ObjectId",
+  "pageNumber": 125,
+  "name": "Önemli Bölüm",
+  "color": "#3498db",
+  "createdAt": "2024-01-15T10:30:00Z"
+}
+```
+
+### Note Document (MODIFIED)
+```json
+{
+  "_id": "ObjectId",
+  "userId": "ObjectId",
+  "bookId": "ObjectId",
+  "pageNumber": 125,
+  "content": "Bu bölüm çok önemli...",
+  "position": { "x": 100, "y": 200 },
+  "color": "#f1c40f",
+  "createdAt": "2024-01-15T10:30:00Z",
+  "updatedAt": "2024-01-15T10:35:00Z"
+}
+```
+
 ---
 
-**Note for AI Models**: This project is a functional digital library for Risale-i Nur works. MongoDB is required but Elasticsearch has been replaced with simple MongoDB text search. All necessary scripts and configurations are provided above.
+**Note for AI Models**: This project is a functional digital library for Risale-i Nur works with complete authentication system. MongoDB is required but Elasticsearch has been replaced with simple MongoDB text search. All necessary scripts and configurations are provided above.
+
+**Authentication System**: The project now includes full user authentication with JWT tokens, email verification, password reset, and user preferences. Make sure to configure email settings in `.env` file for email features to work properly.

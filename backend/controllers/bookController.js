@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Book = require('../models/Book');
 const Page = require('../models/Page');
 
@@ -133,5 +134,50 @@ exports.addBookPage = async (req, res) => {
   } catch (error) {
     console.error('Sayfa eklenirken hata oluştu:', error);
     res.status(500).json({ message: 'Sayfa eklenirken bir hata oluştu.' });
+  }
+};
+
+// Kitap güncelle (Admin kullanımı için)
+exports.updateBook = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+    
+    const book = await Book.findByIdAndUpdate(
+      id,
+      updateData,
+      { new: true, runValidators: true }
+    );
+    
+    if (!book) {
+      return res.status(404).json({ message: 'Kitap bulunamadı.' });
+    }
+    
+    res.status(200).json(book);
+  } catch (error) {
+    console.error('Kitap güncellenirken hata oluştu:', error);
+    res.status(500).json({ message: 'Kitap güncellenirken bir hata oluştu.' });
+  }
+};
+
+// Kitap sil (Admin kullanımı için)
+exports.deleteBook = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Önce kitabın sayfalarını sil
+    await Page.deleteMany({ bookId: id });
+    
+    // Sonra kitabı sil
+    const book = await Book.findByIdAndDelete(id);
+    
+    if (!book) {
+      return res.status(404).json({ message: 'Kitap bulunamadı.' });
+    }
+    
+    res.status(200).json({ message: 'Kitap ve ilgili sayfalar başarıyla silindi.' });
+  } catch (error) {
+    console.error('Kitap silinirken hata oluştu:', error);
+    res.status(500).json({ message: 'Kitap silinirken bir hata oluştu.' });
   }
 };

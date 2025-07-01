@@ -1,15 +1,19 @@
 const express = require('express');
 const router = express.Router();
 const noteController = require('../controllers/noteController');
+const { protect } = require('../middleware/auth');
+
+// Tüm note işlemleri için authentication gerekli
+router.use(protect);
 
 // Kullanıcının tüm notlarını getir
-router.get('/user/:userId', noteController.getUserNotes);
+router.get('/my', noteController.getMyNotes);
 
 // Kullanıcının belirli bir kitaptaki notlarını getir
-router.get('/user/:userId/book/:bookId', noteController.getNotesByBook);
+router.get('/book/:bookId', noteController.getMyNotesByBook);
 
 // Kullanıcının belirli bir sayfadaki notlarını getir
-router.get('/user/:userId/book/:bookId/page/:pageNumber', noteController.getNotesByPage);
+router.get('/book/:bookId/page/:pageNumber', noteController.getMyNotesByPage);
 
 // Yeni not ekle
 router.post('/', noteController.addNote);

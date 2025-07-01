@@ -1,93 +1,111 @@
 <template>
-  <div class="home">
-    <div class="welcome-section">
-      <h1>Risale-i Nur Dijital Kütüphane</h1>
-      <p>Bediüzzaman Said Nursi'nin eserlerini gerçek kitap deneyimiyle okumak için hoş geldiniz.</p>
-      <div class="action-buttons">
-        <router-link to="/bookshelf" class="btn btn-primary">Kitaplığa Göz At</router-link>
+  <div class="home-view">
+    <!-- Hero Bölümü -->
+    <section class="hero-section islamic-pattern">
+      <div class="hero-content">
+        <div class="bismillah">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>
+        <h1 class="hero-title">Risale-i Nur Dijital Kütüphane</h1>
+        <p class="hero-subtitle">
+          "Ey insanlar! Rabb'inizden size bir öğüt, kalplerdeki hastalıklara bir şifa, 
+          müminler için bir hidayet ve rahmet geldi."
+          <span class="verse-ref">- Yunus Suresi, 57</span>
+        </p>
+        <div class="hero-actions">
+          <router-link to="/bookshelf" class="btn btn-primary">
+            <span class="icon">📚</span>
+            Kitaplığı Keşfet
+          </router-link>
+          <button @click="scrollToFeatures" class="btn btn-outline">
+            <span class="icon">✨</span>
+            Özellikler
+          </button>
+        </div>
       </div>
-    </div>
-    
-    <div class="featured-books">
-      <h2>Öne Çıkan Kitaplar</h2>
-      <div class="bookshelf">
-        <div 
-          v-for="book in featuredBooks" 
-          :key="book._id" 
-          class="bookshelf-item"
-          @click="goToBook(book._id)"
-        >
-          <div class="book">
-            <div class="book-cover">
-              <div class="cover-front" :style="{ backgroundImage: `url(${book.coverImage})` }"></div>
-              <div class="cover-back">
-                <div class="book-summary">
+      <div class="hero-decoration">
+        <div class="tasbih-container">
+          <div v-for="i in 5" :key="i" class="tasbih-bead" :style="{animationDelay: i * 0.2 + 's'}"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Öne Çıkan Kitaplar -->
+    <section class="featured-section">
+      <div class="container">
+        <h2 class="section-title">Temel Eserler</h2>
+        <div class="featured-books">
+          <div 
+            v-for="book in featuredBooks" 
+            :key="book.id"
+            class="book-card card"
+            @click="openBook(book.id)"
+          >
+            <div class="book-3d">
+              <div class="book-cover">
+                <div class="cover-spine"></div>
+                <div class="cover-front">
+                  <img :src="book.cover" :alt="book.title" />
                   <h3>{{ book.title }}</h3>
-                  <p>{{ book.description }}</p>
                 </div>
               </div>
             </div>
+            <div class="book-info">
+              <p class="book-description">{{ book.description }}</p>
+              <div class="book-stats">
+                <span class="stat">📖 {{ book.pages }} sayfa</span>
+                <span class="stat">⭐ {{ book.category }}</span>
+              </div>
+            </div>
           </div>
-          <h3 class="book-title">{{ book.title }}</h3>
         </div>
       </div>
-    </div>
-    
-    <div class="categories-section">
-      <h2>Kategoriler</h2>
-      <div class="categories-grid">
-        <router-link 
-          v-for="category in categories" 
-          :key="category" 
-          :to="{ name: 'bookshelf-category', params: { category } }"
-          class="category-card"
-        >
-          <div class="category-icon" :class="'category-' + categorySlug(category)"></div>
-          <h3>{{ category }}</h3>
-        </router-link>
-      </div>
-    </div>
-    
-    <div class="features-section">
-      <h2>Dijital Kütüphane Özellikleri</h2>
-      <div class="features-grid">
-        <div class="feature-card">
-          <div class="feature-icon icon-book"></div>
-          <h3>Gerçekçi Kitap Deneyimi</h3>
-          <p>Gerçek kitap görünümü, sayfa çevirme animasyonu ve kağıt dokusu ile fiziksel okuma deneyimini yaşayın.</p>
-        </div>
-        
-        <div class="feature-card">
-          <div class="feature-icon icon-note"></div>
-          <h3>Not Alma</h3>
-          <p>Sayfa kenarlarına notlar ekleyin ve daha sonra kolayca erişin.</p>
-        </div>
-        
-        <div class="feature-card">
-          <div class="feature-icon icon-bookmark"></div>
-          <h3>Yer İşaretleri</h3>
-          <p>Kaldığınız yeri işaretleyin ve sonraki okumalarınızda kaldığınız yerden devam edin.</p>
-        </div>
-        
-        <div class="feature-card">
-          <div class="feature-icon icon-search"></div>
-          <h3>Gelişmiş Arama</h3>
-          <p>Tüm külliyat içinde anahtar kelimelerle arama yaparak istediğiniz bilgiye hızlıca erişin.</p>
-        </div>
-        
-        <div class="feature-card">
-          <div class="feature-icon icon-font"></div>
-          <h3>Özelleştirme</h3>
-          <p>Yazı tipi, boyutu ve tema ayarlarını kişiselleştirerek size en uygun okuma deneyimini oluşturun.</p>
-        </div>
-        
-        <div class="feature-card">
-          <div class="feature-icon icon-mobile"></div>
-          <h3>Mobil Uyumlu</h3>
-          <p>Her cihazda aynı kalitede okuma deneyimi için tam uyumlu tasarım.</p>
+    </section>
+
+    <!-- Kategoriler -->
+    <section class="categories-section">
+      <div class="container">
+        <h2 class="section-title">Külliyat Kategorileri</h2>
+        <div class="category-grid">
+          <router-link 
+            v-for="cat in categories" 
+            :key="cat.id"
+            :to="`/bookshelf/${cat.slug}`"
+            class="category-card card"
+          >
+            <div class="category-icon">
+              <img :src="cat.icon" :alt="cat.name" />
+            </div>
+            <h3>{{ cat.name }}</h3>
+            <p>{{ cat.count }} eser</p>
+          </router-link>
         </div>
       </div>
-    </div>
+    </section>
+
+    <!-- Özellikler -->
+    <section id="features" class="features-section">
+      <div class="container">
+        <h2 class="section-title">Dijital Okuma Özellikleri</h2>
+        <div class="features-grid">
+          <div v-for="feature in features" :key="feature.id" class="feature-card card">
+            <div class="feature-icon">{{ feature.icon }}</div>
+            <h3>{{ feature.title }}</h3>
+            <p>{{ feature.description }}</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Dua Bölümü -->
+    <section class="prayer-section">
+      <div class="container">
+        <div class="prayer-card card card-glow">
+          <h3>Günün Duası</h3>
+          <p class="arabic-text">{{ dailyPrayer.arabic }}</p>
+          <p class="prayer-meaning">{{ dailyPrayer.turkish }}</p>
+          <p class="prayer-source">{{ dailyPrayer.source }}</p>
+        </div>
+      </div>
+    </section>
   </div>
 </template>
 
@@ -96,411 +114,390 @@ export default {
   name: 'HomeView',
   data() {
     return {
-      featuredBooks: [],
+      featuredBooks: [
+        {
+          id: 'sozler',
+          title: 'Sözler',
+          description: 'İman hakikatlerini anlatan 33 Söz',
+          cover: require('@/assets/images/sözler.png'),
+          pages: 638,
+          category: 'Temel Eser'
+        },
+        {
+          id: 'mektubat',
+          title: 'Mektubat',
+          description: 'Nur talebelerine yazılan mektuplar',
+          cover: require('@/assets/images/mektubat.png'),
+          pages: 572,
+          category: 'Temel Eser'
+        },
+        {
+          id: 'lemalar',
+          title: "Lem'alar",
+          description: 'Işık parıltıları, 33 Lem\'a',
+          cover: require('@/assets/images/Lemalar.png'),
+          pages: 485,
+          category: 'Temel Eser'
+        },
+        {
+          id: 'sualar',
+          title: 'Şualar',
+          description: 'Nur\'un şuleleri, 15 Şua',
+          cover: require('@/assets/images/Şualar.png'),
+          pages: 612,
+          category: 'Temel Eser'
+        }
+      ],
       categories: [
-        'Sözler', 
-        'Mektubat', 
-        'Lem\'alar', 
-        'Şualar', 
-        'İşarât-ül İ\'caz', 
-        'Mesnevî-i Nuriye', 
-        'Barla Lâhikası', 
-        'Kastamonu Lâhikası', 
-        'Emirdağ Lâhikası', 
-        'Diğer'
-      ]
+        { id: 1, name: 'Sözler', slug: 'sozler', icon: require('@/assets/images/sözler.png'), count: 33 },
+        { id: 2, name: 'Mektubat', slug: 'mektubat', icon: require('@/assets/images/mektubat.png'), count: 29 },
+        { id: 3, name: "Lem'alar", slug: 'lemalar', icon: require('@/assets/images/Lemalar.png'), count: 33 },
+        { id: 4, name: 'Şualar', slug: 'sualar', icon: require('@/assets/images/Şualar.png'), count: 15 },
+        { id: 5, name: 'Mesnevî-i Nuriye', slug: 'mesnevi', icon: require('@/assets/images/Mesnevi i nuriye.png'), count: 11 },
+        { id: 6, name: 'Diğer Eserler', slug: 'diger', icon: require('@/assets/images/Muhakemat.png'), count: 25 }
+      ],
+      features: [
+        {
+          id: 1,
+          icon: '📖',
+          title: 'Gerçekçi Okuma',
+          description: 'Sayfa çevirme animasyonları ve kitap hissi'
+        },
+        {
+          id: 2,
+          icon: '🔍',
+          title: 'Akıllı Arama',
+          description: 'Tüm külliyatta kelime ve konu bazlı arama'
+        },
+        {
+          id: 3,
+          icon: '🔖',
+          title: 'Yer İşaretleri',
+          description: 'Kaldığınız yeri işaretleyin ve notlar alın'
+        },
+        {
+          id: 4,
+          icon: '🎨',
+          title: 'Tema Seçenekleri',
+          description: 'Göz yormayan okuma modları'
+        },
+        {
+          id: 5,
+          icon: '📱',
+          title: 'Mobil Uyumlu',
+          description: 'Her cihazda mükemmel okuma deneyimi'
+        },
+        {
+          id: 6,
+          icon: '💾',
+          title: 'Çevrimdışı Okuma',
+          description: 'İndirdiğiniz kitapları internet olmadan okuyun'
+        }
+      ],
+      dailyPrayer: {
+        arabic: 'رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الْآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ',
+        turkish: 'Rabbimiz! Bize dünyada da iyilik ver, ahirette de iyilik ver ve bizi ateş azabından koru.',
+        source: 'Bakara Suresi, 201'
+      }
     }
   },
-  created() {
-    this.loadFeaturedBooks();
-  },
   methods: {
-    async loadFeaturedBooks() {
-      try {
-        // Ana sayfada gösterilecek öne çıkan kitapları yükle
-        // Bu örnek için rastgele 5 kitap gösterelim
-        await this.$store.dispatch('fetchBooks');
-        let books = this.$store.state.books.slice(0, 5);
-        
-        // Kitap kapak resimlerini manuel olarak ayarla
-        const bookCovers = {
-          'Sözler': require('@/assets/images/sözler.png'),
-          'Mektubat': require('@/assets/images/mektubat.png'),
-          'Lem\'alar': require('@/assets/images/Lemalar.png'),
-          'Şualar': require('@/assets/images/Şualar.png'),
-          'Mesnevî-i Nuriye': require('@/assets/images/Mesnevi i nuriye.png'),
-          'İşarât-ül İ\'caz': require('@/assets/images/sikkei tasdiki gaybi.png'),
-          'Muhakemat': require('@/assets/images/Muhakemat.png')
-        };
-        
-        this.featuredBooks = books.map(book => {
-          // Eğer kitabın başlığı için bir kapak resmi varsa, onu kullan
-          if (bookCovers[book.title]) {
-            book.coverImage = bookCovers[book.title];
-          }
-          return book;
-        });
-      } catch (error) {
-        console.error("Öne çıkan kitaplar yüklenirken hata oluştu:", error);
-      }
-    },
-    goToBook(bookId) {
+    openBook(bookId) {
       this.$router.push({ name: 'reader', params: { bookId } });
     },
-    categorySlug(category) {
-      return category
-        .toLowerCase()
-        .replace(/\s+/g, '-')
-        .replace(/[ğüşıöçĞÜŞİÖÇ]/g, c => {
-          return {
-            'ğ': 'g', 'ü': 'u', 'ş': 's', 'ı': 'i', 'ö': 'o', 'ç': 'c',
-            'Ğ': 'G', 'Ü': 'U', 'Ş': 'S', 'İ': 'I', 'Ö': 'O', 'Ç': 'C'
-          }[c];
-        });
+    scrollToFeatures() {
+      document.getElementById('features').scrollIntoView({ behavior: 'smooth' });
     }
   }
 }
 </script>
 
 <style scoped lang="scss">
-.home {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 20px;
+.home-view {
+  min-height: 100vh;
+  animation: fadeIn 0.6s ease-out;
 }
 
-.welcome-section {
-  text-align: center;
-  padding: 40px 0;
+// Hero Bölümü
+.hero-section {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+  overflow: hidden;
   
-  h1 {
-    font-size: 2.5rem;
-    margin-bottom: 20px;
-    color: #4a69bd;
-  }
-  
-  p {
-    font-size: 1.2rem;
-    max-width: 700px;
-    margin: 0 auto 30px;
-    color: #666;
-  }
-  
-  .action-buttons {
-    margin-top: 20px;
+  .hero-content {
+    text-align: center;
+    z-index: 10;
+    max-width: 800px;
+    padding: 2rem;
     
-    .btn {
-      padding: 12px 24px;
-      font-size: 1.1rem;
+    .bismillah {
+      font-size: 2rem;
+      color: var(--accent-color);
+      margin-bottom: 1rem;
+      font-family: 'Amiri', serif;
+    }
+    
+    .hero-title {
+      font-size: 3.5rem;
+      margin-bottom: 1.5rem;
+      background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: fadeIn 1s ease-out 0.3s both;
+    }
+    
+    .hero-subtitle {
+      font-size: 1.25rem;
+      color: var(--text-secondary);
+      margin-bottom: 2rem;
+      line-height: 1.8;
+      animation: fadeIn 1s ease-out 0.6s both;
+      
+      .verse-ref {
+        display: block;
+        font-size: 0.9rem;
+        color: var(--text-light);
+        margin-top: 0.5rem;
+      }
+    }
+    
+    .hero-actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      animation: fadeIn 1s ease-out 0.9s both;
+    }
+  }
+  
+  .hero-decoration {
+    position: absolute;
+    top: 50%;
+    right: 10%;
+    transform: translateY(-50%);
+    
+    .tasbih-container {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
     }
   }
 }
 
+// Bölüm Genel Stilleri
+section {
+  padding: 5rem 0;
+  
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+  }
+  
+  .section-title {
+    text-align: center;
+    margin-bottom: 3rem;
+    position: relative;
+    
+    &::after {
+      content: '◆';
+      display: block;
+      color: var(--accent-color);
+      font-size: 1.5rem;
+      margin-top: 1rem;
+    }
+  }
+}
+
+// Öne Çıkan Kitaplar
 .featured-books {
-  margin: 40px 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
   
-  h2 {
+  .book-card {
+    cursor: pointer;
     text-align: center;
-    margin-bottom: 30px;
-    font-size: 1.8rem;
-    color: #333;
-  }
-  
-  .bookshelf {
-    display: flex;
-    overflow-x: auto;
-    padding: 20px 0;
-    -webkit-overflow-scrolling: touch;
     
-    .bookshelf-item {
-      flex: 0 0 auto;
-      width: 180px;
-      margin-right: 30px;
-      cursor: pointer;
-      transition: transform 0.3s;
+    .book-3d {
+      margin-bottom: 1.5rem;
+      height: 300px;
       
-      &:hover {
-        transform: scale(1.05);
-      }
-      
-      .book {
-        perspective: 1200px;
-        width: 100%;
-        height: 250px;
-        position: relative;
+      .book-cover {
+        height: 100%;
         
-        .book-cover {
-          position: relative;
-          width: 100%;
+        .cover-front {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: 1rem;
           height: 100%;
-          transform-style: preserve-3d;
-          transition: transform 0.5s;
           
-          .cover-front, .cover-back {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            backface-visibility: hidden;
-            border-radius: 5px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+          img {
+            max-width: 150px;
+            max-height: 200px;
+            object-fit: contain;
+            margin-bottom: 1rem;
           }
           
-          .cover-front {
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            border: 1px solid #ddd;
-          }
-          
-          .cover-back {
-            transform: rotateY(180deg);
-            background-color: #f5f5f5;
-            padding: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            
-            .book-summary {
-              text-align: center;
-              
-              h3 {
-                font-size: 1rem;
-                margin-bottom: 10px;
-              }
-              
-              p {
-                font-size: 0.8rem;
-                line-height: 1.4;
-                color: #666;
-              }
-            }
+          h3 {
+            font-size: 1.25rem;
+            color: var(--primary-dark);
           }
         }
+      }
+    }
+    
+    .book-info {
+      .book-description {
+        color: var(--text-secondary);
+        margin-bottom: 1rem;
+      }
+      
+      .book-stats {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
         
-        &:hover .book-cover {
-          transform: rotateY(180deg);
+        .stat {
+          font-size: 0.9rem;
+          color: var(--text-light);
         }
       }
     }
   }
-  
-  .book-title {
-    text-align: center;
-    margin-top: 15px;
-    font-size: 1.1rem;
-  }
 }
 
-.categories-section {
-  margin: 60px 0;
-  
-  h2 {
-    text-align: center;
-    margin-bottom: 30px;
-    font-size: 1.8rem;
-    color: #333;
-  }
-  
-  .categories-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    grid-gap: 20px;
-  }
+// Kategoriler
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
   
   .category-card {
-    display: block;
-    text-decoration: none;
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     text-align: center;
-    transition: transform 0.3s, box-shadow 0.3s;
-    
-    &:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    }
-    
-    h3 {
-      color: #333;
-      font-size: 1.2rem;
-      margin-top: 15px;
-    }
+    text-decoration: none;
+    color: inherit;
     
     .category-icon {
-      width: 60px;
-      height: 60px;
-      margin: 0 auto;
-      background-size: contain;
-      background-position: center;
-      background-repeat: no-repeat;
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 1rem;
+      padding: 1rem;
+      background: var(--bg-secondary);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      
+      img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+      }
     }
-  }
-}
-
-.features-section {
-  margin: 60px 0;
-  
-  h2 {
-    text-align: center;
-    margin-bottom: 30px;
-    font-size: 1.8rem;
-    color: #333;
-  }
-  
-  .features-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    grid-gap: 30px;
-  }
-  
-  .feature-card {
-    background-color: #fff;
-    padding: 30px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    text-align: center;
     
     h3 {
-      font-size: 1.3rem;
-      margin: 15px 0;
-      color: #333;
+      font-size: 1.25rem;
+      margin-bottom: 0.5rem;
     }
     
     p {
-      color: #666;
-      line-height: 1.6;
-    }
-    
-    .feature-icon {
-      width: 60px;
-      height: 60px;
-      margin: 0 auto;
-      background-size: contain;
-      background-position: center;
-      background-repeat: no-repeat;
+      color: var(--text-light);
     }
   }
 }
 
-// Kategori ve Özellik İkonları
-.category-sozler {
-  background-image: url('../assets/images/sözler.png');
-  background-size: contain;
-  background-position: center;
-  background-repeat: no-repeat;
-  width: 60px;
-  height: 60px;
+// Özellikler
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  
+  .feature-card {
+    text-align: center;
+    
+    .feature-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+    
+    h3 {
+      font-size: 1.25rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    p {
+      color: var(--text-secondary);
+    }
+  }
 }
 
-.category-mektubat {
-  background-image: url('../assets/images/mektubat.png');
-  background-size: contain;
-  background-position: center;
-  background-repeat: no-repeat;
-  width: 60px;
-  height: 60px;
-}
-
-.category-lemalar {
-  background-image: url('../assets/images/Lemalar.png');
-  background-size: contain;
-  background-position: center;
-  background-repeat: no-repeat;
-  width: 60px;
-  height: 60px;
-}
-
-.category-sualar {
-  background-image: url('../assets/images/Şualar.png');
-  background-size: contain;
-  background-position: center;
-  background-repeat: no-repeat;
-  width: 60px;
-  height: 60px;
-}
-
-.category-isarat-ul-i-caz {
-  background-image: url('../assets/images/sikkei tasdiki gaybi.png');
-  background-size: contain;
-  background-position: center;
-  background-repeat: no-repeat;
-  width: 60px;
-  height: 60px;
-}
-
-.category-mesnevi-i-nuriye {
-  background-image: url('../assets/images/Mesnevi i nuriye.png');
-  background-size: contain;
-  background-position: center;
-  background-repeat: no-repeat;
-  width: 60px;
-  height: 60px;
-}
-
-.category-barla-lahikasi {
-  background-image: url('../assets/images/Muhakemat.png');
-  background-size: contain;
-  background-position: center;
-  background-repeat: no-repeat;
-  width: 60px;
-  height: 60px;
-}
-
-.category-kastamonu-lahikasi, .category-emirdag-lahikasi, .category-diger {
-  background-image: url('../assets/images/Muhakemat.png');
-  background-size: contain;
-  background-position: center;
-  background-repeat: no-repeat;
-  width: 60px;
-  height: 60px;
-}
-
-.icon-book:before {
-  content: '📚';
-  font-size: 40px;
-}
-
-.icon-note:before {
-  content: '📝';
-  font-size: 40px;
-}
-
-.icon-bookmark:before {
-  content: '🔖';
-  font-size: 40px;
-}
-
-.icon-search:before {
-  content: '🔍';
-  font-size: 40px;
-}
-
-.icon-font:before {
-  content: '🖋️';
-  font-size: 40px;
-}
-
-.icon-mobile:before {
-  content: '📱';
-  font-size: 40px;
+// Dua Bölümü
+.prayer-section {
+  background: var(--bg-secondary);
+  
+  .prayer-card {
+    max-width: 600px;
+    margin: 0 auto;
+    text-align: center;
+    
+    h3 {
+      margin-bottom: 1.5rem;
+    }
+    
+    .arabic-text {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+      color: var(--primary-color);
+    }
+    
+    .prayer-meaning {
+      font-size: 1.1rem;
+      margin-bottom: 1rem;
+      line-height: 1.8;
+    }
+    
+    .prayer-source {
+      color: var(--text-light);
+      font-style: italic;
+    }
+  }
 }
 
 // Responsive
 @media (max-width: 768px) {
-  .welcome-section {
-    h1 {
-      font-size: 2rem;
-    }
-    
-    p {
-      font-size: 1rem;
+  .hero-section {
+    .hero-content {
+      .hero-title {
+        font-size: 2.5rem;
+      }
+      
+      .hero-actions {
+        flex-direction: column;
+        width: 100%;
+        
+        .btn {
+          width: 100%;
+        }
+      }
     }
   }
   
+  .featured-books {
+    grid-template-columns: 1fr;
+  }
+  
+  .category-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
   .features-grid {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: 1fr;
   }
 }
 </style>

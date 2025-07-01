@@ -1,8 +1,9 @@
 import { createStore } from 'vuex'
-import axios from 'axios'
+import axios from '@/utils/axios'
+import auth from './modules/auth'
 
 // API URL
-const API_URL = process.env.VUE_APP_API_URL || 'http://localhost:3000/api'
+const API_URL = process.env.VUE_APP_API_URL || 'http://localhost:3001/api'
 
 export default createStore({
   state: {
@@ -21,7 +22,8 @@ export default createStore({
     },
     searchResults: [],
     loading: false,
-    error: null
+    error: null,
+    notification: null
   },
   getters: {
     getBookById: (state) => (id) => {
@@ -98,6 +100,9 @@ export default createStore({
     },
     SET_ERROR(state, error) {
       state.error = error
+    },
+    SET_NOTIFICATION(state, notification) {
+      state.notification = notification
     }
   },
   actions: {
@@ -105,7 +110,7 @@ export default createStore({
     async fetchBooks({ commit }) {
       commit('SET_LOADING', true)
       try {
-        const response = await axios.get(`${API_URL}/books`)
+        const response = await axios.get('/books')
         commit('SET_BOOKS', response.data)
         commit('SET_ERROR', null)
       } catch (error) {
@@ -120,7 +125,7 @@ export default createStore({
     async fetchBooksByCategory({ commit }, category) {
       commit('SET_LOADING', true)
       try {
-        const response = await axios.get(`${API_URL}/books/category/${category}`)
+        const response = await axios.get(`/books/category/${category}`)
         commit('SET_BOOKS', response.data)
         commit('SET_ERROR', null)
       } catch (error) {
@@ -135,7 +140,7 @@ export default createStore({
     async fetchBook({ commit }, bookId) {
       commit('SET_LOADING', true)
       try {
-        const response = await axios.get(`${API_URL}/books/${bookId}`)
+        const response = await axios.get(`/books/${bookId}`)
         commit('SET_CURRENT_BOOK', response.data)
         commit('SET_ERROR', null)
       } catch (error) {
@@ -150,7 +155,7 @@ export default createStore({
     async fetchBookPage({ commit }, { bookId, pageNumber }) {
       commit('SET_LOADING', true)
       try {
-        const response = await axios.get(`${API_URL}/books/${bookId}/page/${pageNumber}`)
+        const response = await axios.get(`/books/${bookId}/page/${pageNumber}`)
         commit('SET_CURRENT_PAGE', response.data)
         commit('SET_ERROR', null)
       } catch (error) {
@@ -165,7 +170,7 @@ export default createStore({
     async fetchUserBookmarks({ commit }, userId) {
       commit('SET_LOADING', true)
       try {
-        const response = await axios.get(`${API_URL}/bookmarks/user/${userId}`)
+        const response = await axios.get('/bookmarks/my')
         commit('SET_BOOKMARKS', response.data)
         commit('SET_ERROR', null)
       } catch (error) {
@@ -180,7 +185,7 @@ export default createStore({
     async addBookmark({ commit }, bookmark) {
       commit('SET_LOADING', true)
       try {
-        const response = await axios.post(`${API_URL}/bookmarks`, bookmark)
+        const response = await axios.post('/bookmarks', bookmark)
         commit('ADD_BOOKMARK', response.data)
         commit('SET_ERROR', null)
         return response.data
@@ -197,7 +202,7 @@ export default createStore({
     async updateBookmark({ commit }, { id, data }) {
       commit('SET_LOADING', true)
       try {
-        const response = await axios.put(`${API_URL}/bookmarks/${id}`, data)
+        const response = await axios.put(`/bookmarks/${id}`, data)
         commit('UPDATE_BOOKMARK', response.data)
         commit('SET_ERROR', null)
         return response.data
@@ -214,7 +219,7 @@ export default createStore({
     async deleteBookmark({ commit }, bookmarkId) {
       commit('SET_LOADING', true)
       try {
-        await axios.delete(`${API_URL}/bookmarks/${bookmarkId}`)
+        await axios.delete(`/bookmarks/${bookmarkId}`)
         commit('REMOVE_BOOKMARK', bookmarkId)
         commit('SET_ERROR', null)
       } catch (error) {
@@ -230,7 +235,7 @@ export default createStore({
     async fetchUserNotes({ commit }, userId) {
       commit('SET_LOADING', true)
       try {
-        const response = await axios.get(`${API_URL}/notes/user/${userId}`)
+        const response = await axios.get('/notes/my')
         commit('SET_NOTES', response.data)
         commit('SET_ERROR', null)
       } catch (error) {
@@ -245,7 +250,7 @@ export default createStore({
     async fetchPageNotes({ commit }, { userId, bookId, pageNumber }) {
       commit('SET_LOADING', true)
       try {
-        const response = await axios.get(`${API_URL}/notes/user/${userId}/book/${bookId}/page/${pageNumber}`)
+        const response = await axios.get(`/notes/book/${bookId}/page/${pageNumber}`)
         commit('SET_NOTES', response.data)
         commit('SET_ERROR', null)
       } catch (error) {
@@ -260,7 +265,7 @@ export default createStore({
     async addNote({ commit }, note) {
       commit('SET_LOADING', true)
       try {
-        const response = await axios.post(`${API_URL}/notes`, note)
+        const response = await axios.post('/notes', note)
         commit('ADD_NOTE', response.data)
         commit('SET_ERROR', null)
         return response.data
@@ -277,7 +282,7 @@ export default createStore({
     async updateNote({ commit }, { id, data }) {
       commit('SET_LOADING', true)
       try {
-        const response = await axios.put(`${API_URL}/notes/${id}`, data)
+        const response = await axios.put(`/notes/${id}`, data)
         commit('UPDATE_NOTE', response.data)
         commit('SET_ERROR', null)
         return response.data
@@ -294,7 +299,7 @@ export default createStore({
     async deleteNote({ commit }, noteId) {
       commit('SET_LOADING', true)
       try {
-        await axios.delete(`${API_URL}/notes/${noteId}`)
+        await axios.delete(`/notes/${noteId}`)
         commit('REMOVE_NOTE', noteId)
         commit('SET_ERROR', null)
       } catch (error) {
@@ -319,7 +324,7 @@ export default createStore({
     async searchBooks({ commit }, query) {
       commit('SET_LOADING', true)
       try {
-        const response = await axios.get(`${API_URL}/search/basic`, {
+        const response = await axios.get('/search/basic', {
           params: { query }
         })
         commit('SET_SEARCH_RESULTS', response.data)
@@ -338,7 +343,7 @@ export default createStore({
     async advancedSearch({ commit }, params) {
       commit('SET_LOADING', true)
       try {
-        const response = await axios.get(`${API_URL}/search/advanced`, {
+        const response = await axios.get('/search/advanced', {
           params
         })
         commit('SET_SEARCH_RESULTS', response.data)
@@ -357,7 +362,7 @@ export default createStore({
     async searchWord({ commit }, word) {
       commit('SET_LOADING', true)
       try {
-        const response = await axios.get(`${API_URL}/dictionary/word/${word}`)
+        const response = await axios.get(`/dictionary/word/${word}`)
         commit('SET_ERROR', null)
         return response.data
       } catch (error) {
@@ -373,5 +378,6 @@ export default createStore({
     }
   },
   modules: {
+    auth
   }
 })

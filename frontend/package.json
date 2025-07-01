@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "dev": "vue-cli-service serve --skip-plugins=eslint",
     "serve": "vue-cli-service serve --skip-plugins=eslint",
     "build": "vue-cli-service build --skip-plugins=eslint",
     "lint": "vue-cli-service lint"

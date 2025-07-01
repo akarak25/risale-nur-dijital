@@ -6,11 +6,13 @@ const morgan = require('morgan');
 const mongoose = require('mongoose');
 
 // Routes
+const authRoutes = require('./routes/authRoutes');
 const bookRoutes = require('./routes/bookRoutes');
 const bookmarkRoutes = require('./routes/bookmarkRoutes');
 const noteRoutes = require('./routes/noteRoutes');
 const searchRoutes = require('./routes/searchRoutes');
 const dictionaryRoutes = require('./routes/dictionaryRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 
 const app = express();
 
@@ -29,11 +31,13 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/risaleNur
 .catch(err => console.error('MongoDB bağlantı hatası:', err));
 
 // Routes
+app.use('/api/auth', authRoutes);
 app.use('/api/books', bookRoutes);
 app.use('/api/bookmarks', bookmarkRoutes);
 app.use('/api/notes', noteRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/dictionary', dictionaryRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Ana route
 app.get('/', (req, res) => {

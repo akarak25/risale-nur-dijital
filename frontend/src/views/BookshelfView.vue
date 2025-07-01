@@ -1,52 +1,143 @@
 <template>
   <div class="bookshelf-view">
+    <!-- Başlık ve Filtreler -->
     <div class="bookshelf-header">
-      <h1>{{ title }}</h1>
-      <div class="category-filter">
-        <label for="category-select">Kategori:</label>
-        <select id="category-select" v-model="selectedCategory" @change="changeCategory">
-          <option value="">Tüm Kitaplar</option>
-          <option v-for="category in categories" :key="category" :value="category">
-            {{ category }}
-          </option>
-        </select>
+      <div class="header-content">
+        <h1 class="page-title">
+          <span class="icon">📚</span>
+          {{ pageTitle }}
+        </h1>
+        <p class="page-subtitle">
+          Risale-i Nur Külliyatı'ndan {{ filteredBooksCount }} eser
+        </p>
+      </div>
+      
+      <div class="header-controls">
+        <div class="filter-group">
+          <label>Kategori:</label>
+          <select v-model="selectedCategory" @change="filterBooks" class="filter-select">
+            <option value="">Tüm Kitaplar</option>
+            <option v-for="cat in categories" :key="cat.id" :value="cat.slug">
+              {{ cat.name }}
+            </option>
+          </select>
+        </div>
+        
+        <div class="view-toggle">
+          <button 
+            @click="viewMode = 'grid'" 
+            :class="['view-btn', {active: viewMode === 'grid'}]"
+          >
+            <span class="icon">⊞</span>
+          </button>
+          <button 
+            @click="viewMode = 'list'" 
+            :class="['view-btn', {active: viewMode === 'list'}]"
+          >
+            <span class="icon">☰</span>
+          </button>
+        </div>
       </div>
     </div>
 
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner"></div>
-      <p>Kitaplar yükleniyor...</p>
+    <!-- Yükleniyor -->
+    <div v-if="loading" class="loading-container">
+      <div class="loading-islamic"></div>
+      <p>Kitaplar hazırlanıyor...</p>
     </div>
 
-    <div v-else-if="books.length === 0" class="empty-state">
-      <p>Bu kategoride kitap bulunamadı.</p>
+    <!-- Boş Durum -->
+    <div v-else-if="filteredBooks.length === 0" class="empty-state">
+      <div class="empty-icon">📚</div>
+      <h3>Kitap Bulunamadı</h3>
+      <p>Seçili kategoride henüz kitap bulunmuyor.</p>
+      <button @click="clearFilters" class="btn btn-primary">
+        Tüm Kitapları Göster
+      </button>
     </div>
 
-    <div v-else class="bookshelf">
+    <!-- Kitap Listesi - Grid Görünüm -->
+    <div v-else-if="viewMode === 'grid'" class="books-grid">
       <div 
-        v-for="book in books" 
-        :key="book._id" 
-        class="bookshelf-item"
-        @click="openBook(book._id)"
+        v-for="book in filteredBooks" 
+        :key="book.id"
+        class="book-item"
+        @click="openBook(book.id)"
       >
-        <div class="book">
+        <div class="book-3d">
           <div class="book-cover">
-            <div class="cover-front" :style="{ backgroundImage: `url(${book.coverImage})` }">
-              <div class="book-spine">
-                <h3>{{ book.title }}</h3>
+            <div class="cover-spine"></div>
+            <div class="cover-front">
+              <div class="book-image">
+                <img :src="book.coverImage" :alt="book.title" />
               </div>
-            </div>
-            <div class="cover-back">
-              <div class="book-summary">
-                <h3>{{ book.title }}</h3>
-                <p>{{ truncateText(book.description, 150) }}</p>
-                <button class="btn btn-primary book-read-btn">Okumaya Başla</button>
+              <div class="book-overlay">
+                <h3 class="book-title">{{ book.title }}</h3>
+                <p class="book-author">{{ book.author }}</p>
               </div>
             </div>
           </div>
         </div>
-        <h3 class="book-title">{{ book.title }}</h3>
+        <div class="book-info">
+          <h4>{{ book.title }}</h4>
+          <div class="book-meta">
+            <span class="pages">📄 {{ book.pageCount }} sayfa</span>
+            <span class="category">{{ getCategoryName(book.category) }}</span>
+          </div>
+        </div>
       </div>
+    </div>
+
+    <!-- Kitap Listesi - Liste Görünüm -->
+    <div v-else class="books-list">
+      <div 
+        v-for="book in filteredBooks" 
+        :key="book.id"
+        class="book-list-item card"
+        @click="openBook(book.id)"
+      >
+        <div class="book-cover-small">
+          <img :src="book.coverImage" :alt="book.title" />
+        </div>
+        <div class="book-details">
+          <h3>{{ book.title }}</h3>
+          <p class="book-description">{{ book.description }}</p>
+          <div class="book-meta">
+            <span class="author">✍️ {{ book.author }}</span>
+            <span class="pages">📄 {{ book.pageCount }} sayfa</span>
+            <span class="category">🏷️ {{ getCategoryName(book.category) }}</span>
+          </div>
+        </div>
+        <div class="book-actions">
+          <button @click.stop="openBook(book.id)" class="btn btn-primary">
+            Oku
+          </button>
+          <button @click.stop="toggleBookmark(book.id)" class="btn btn-outline">
+            <span class="icon">{{ isBookmarked(book.id) ? '🔖' : '📌' }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sayfalama -->
+    <div v-if="totalPages > 1" class="pagination">
+      <button 
+        @click="currentPage--" 
+        :disabled="currentPage === 1"
+        class="page-btn"
+      >
+        ◀
+      </button>
+      <span class="page-info">
+        Sayfa {{ currentPage }} / {{ totalPages }}
+      </span>
+      <button 
+        @click="currentPage++" 
+        :disabled="currentPage === totalPages"
+        class="page-btn"
+      >
+        ▶
+      </button>
     </div>
   </div>
 </template>
@@ -57,62 +148,131 @@ export default {
   props: {
     category: {
       type: String,
-      required: false,
       default: ''
     }
   },
   data() {
     return {
-      selectedCategory: '',
-      loading: true,
-      error: null
+      loading: false,
+      selectedCategory: this.category || '',
+      viewMode: 'grid',
+      currentPage: 1,
+      booksPerPage: 12,
+      searchQuery: '',
+      categories: [
+        { id: 1, name: 'Sözler', slug: 'sozler' },
+        { id: 2, name: 'Mektubat', slug: 'mektubat' },
+        { id: 3, name: "Lem'alar", slug: 'lemalar' },
+        { id: 4, name: 'Şualar', slug: 'sualar' },
+        { id: 5, name: 'Mesnevî-i Nuriye', slug: 'mesnevi' },
+        { id: 6, name: 'İşarat-ül İ\'caz', slug: 'isarat' },
+        { id: 7, name: 'Barla Lâhikası', slug: 'barla' },
+        { id: 8, name: 'Kastamonu Lâhikası', slug: 'kastamonu' },
+        { id: 9, name: 'Emirdağ Lâhikası', slug: 'emirdag' }
+      ],
+      books: [] // Demo kitaplar
     }
   },
   computed: {
-    books() {
-      return this.$store.state.books;
+    pageTitle() {
+      if (this.selectedCategory) {
+        const cat = this.categories.find(c => c.slug === this.selectedCategory);
+        return cat ? cat.name : 'Kitaplık';
+      }
+      return 'Risale-i Nur Kitaplığı';
     },
-    categories() {
-      return [
-        'Sözler', 
-        'Mektubat', 
-        'Lem\'alar', 
-        'Şualar', 
-        'İşarât-ül İ\'caz', 
-        'Mesnevî-i Nuriye', 
-        'Barla Lâhikası', 
-        'Kastamonu Lâhikası', 
-        'Emirdağ Lâhikası', 
-        'Diğer'
-      ];
+    filteredBooks() {
+      let filtered = this.books;
+      
+      // Kategori filtresi
+      if (this.selectedCategory) {
+        filtered = filtered.filter(book => book.category === this.selectedCategory);
+      }
+      
+      // Arama filtresi
+      if (this.searchQuery) {
+        const query = this.searchQuery.toLowerCase();
+        filtered = filtered.filter(book => 
+          book.title.toLowerCase().includes(query) ||
+          book.description.toLowerCase().includes(query)
+        );
+      }
+      
+      // Sayfalama
+      const start = (this.currentPage - 1) * this.booksPerPage;
+      const end = start + this.booksPerPage;
+      
+      return filtered.slice(start, end);
     },
-    title() {
-      return this.selectedCategory ? `${this.selectedCategory} Kitapları` : 'Tüm Kitaplar';
+    filteredBooksCount() {
+      return this.books.filter(book => 
+        !this.selectedCategory || book.category === this.selectedCategory
+      ).length;
+    },
+    totalPages() {
+      return Math.ceil(this.filteredBooksCount / this.booksPerPage);
+    },
+    bookmarkedBooks() {
+      return this.$store?.state?.bookmarks || [];
     }
   },
   created() {
-    this.selectedCategory = this.category;
-    this.fetchBooks();
+    this.loadBooks();
   },
   watch: {
     category(newCategory) {
       this.selectedCategory = newCategory;
-      this.fetchBooks();
+      this.currentPage = 1;
     }
   },
   methods: {
-    async fetchBooks() {
+    async loadBooks() {
       this.loading = true;
       try {
-        if (this.selectedCategory) {
-          await this.$store.dispatch('fetchBooksByCategory', this.selectedCategory);
-        } else {
-          await this.$store.dispatch('fetchBooks');
-        }
-        this.error = null;
+        // Demo kitaplar oluştur
+        this.books = [
+          {
+            id: 'sozler-1',
+            title: 'Sözler',
+            author: 'Bediüzzaman Said Nursi',
+            description: 'İman hakikatlerini inceleyen otuz üç söz',
+            coverImage: require('@/assets/images/sözler.png'),
+            category: 'sozler',
+            pageCount: 638
+          },
+          {
+            id: 'mektubat-1',
+            title: 'Mektubat',
+            author: 'Bediüzzaman Said Nursi',
+            description: 'Nur talebelerine yazılmış mektuplar',
+            coverImage: require('@/assets/images/mektubat.png'),
+            category: 'mektubat',
+            pageCount: 572
+          },
+          {
+            id: 'lemalar-1',
+            title: "Lem'alar",
+            author: 'Bediüzzaman Said Nursi',
+            description: 'Otuz üç lem\'a - ışık parıltıları',
+            coverImage: require('@/assets/images/Lemalar.png'),
+            category: 'lemalar',
+            pageCount: 485
+          },
+          {
+            id: 'sualar-1',
+            title: 'Şualar',
+            author: 'Bediüzzaman Said Nursi',
+            description: 'On beş şua - nur\'un şuleleri',
+            coverImage: require('@/assets/images/Şualar.png'),
+            category: 'sualar',
+            pageCount: 612
+          }
+        ];
+        
+        // API çağrısı simülasyonu
+        await new Promise(resolve => setTimeout(resolve, 1000));
       } catch (error) {
-        console.error('Kitaplar yüklenirken hata oluştu:', error);
-        this.error = 'Kitaplar yüklenirken bir hata oluştu. Lütfen daha sonra tekrar deneyin.';
+        console.error('Kitaplar yüklenemedi:', error);
       } finally {
         this.loading = false;
       }
@@ -120,17 +280,40 @@ export default {
     openBook(bookId) {
       this.$router.push({ name: 'reader', params: { bookId } });
     },
-    changeCategory() {
+    filterBooks() {
+      this.currentPage = 1;
       if (this.selectedCategory) {
-        this.$router.push({ name: 'bookshelf-category', params: { category: this.selectedCategory } });
+        this.$router.push({ 
+          name: 'bookshelf-category', 
+          params: { category: this.selectedCategory } 
+        });
       } else {
         this.$router.push({ name: 'bookshelf' });
       }
     },
-    truncateText(text, maxLength) {
-      if (!text) return '';
-      if (text.length <= maxLength) return text;
-      return text.slice(0, maxLength) + '...';
+    clearFilters() {
+      this.selectedCategory = '';
+      this.searchQuery = '';
+      this.currentPage = 1;
+      this.$router.push({ name: 'bookshelf' });
+    },
+    getCategoryName(slug) {
+      const cat = this.categories.find(c => c.slug === slug);
+      return cat ? cat.name : '';
+    },
+    isBookmarked(bookId) {
+      return this.bookmarkedBooks.some(b => b.bookId === bookId);
+    },
+    toggleBookmark(bookId) {
+      if (this.isBookmarked(bookId)) {
+        this.$store.dispatch('removeBookmark', bookId);
+      } else {
+        this.$store.dispatch('addBookmark', {
+          bookId,
+          pageNumber: 1,
+          name: 'Kitap Başlangıcı'
+        });
+      }
     }
   }
 }
@@ -138,208 +321,397 @@ export default {
 
 <style scoped lang="scss">
 .bookshelf-view {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
+  min-height: calc(100vh - 200px);
+  animation: fadeIn 0.6s ease-out;
 }
 
+// Başlık
 .bookshelf-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 30px;
+  margin-bottom: 3rem;
   
-  h1 {
-    font-size: 2rem;
-    color: #4a69bd;
-  }
-  
-  .category-filter {
-    display: flex;
-    align-items: center;
+  .header-content {
+    text-align: center;
+    margin-bottom: 2rem;
     
-    label {
-      margin-right: 10px;
-      font-weight: 600;
+    .page-title {
+      font-size: 2.5rem;
+      color: var(--primary-color);
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      
+      .icon {
+        font-size: 2rem;
+      }
     }
     
-    select {
-      padding: 8px 12px;
-      border-radius: 4px;
-      border: 1px solid #ddd;
-      font-size: 1rem;
-      background-color: #fff;
+    .page-subtitle {
+      font-size: 1.1rem;
+      color: var(--text-secondary);
+    }
+  }
+  
+  .header-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+    
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
       
-      &:focus {
-        outline: none;
-        border-color: #4a69bd;
+      label {
+        font-weight: 500;
+        color: var(--text-secondary);
+      }
+      
+      .filter-select {
+        padding: 0.5rem 1rem;
+        border: 2px solid var(--bg-secondary);
+        border-radius: 8px;
+        background: var(--bg-card);
+        color: var(--text-primary);
+        font-size: 1rem;
+        min-width: 200px;
+        
+        &:focus {
+          outline: none;
+          border-color: var(--primary-color);
+        }
+      }
+    }
+    
+    .view-toggle {
+      display: flex;
+      background: var(--bg-secondary);
+      border-radius: 8px;
+      padding: 4px;
+      
+      .view-btn {
+        padding: 0.5rem 1rem;
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        border-radius: 4px;
+        transition: all 0.3s;
+        color: var(--text-secondary);
+        
+        &:hover {
+          color: var(--text-primary);
+        }
+        
+        &.active {
+          background: var(--bg-card);
+          color: var(--primary-color);
+          box-shadow: var(--shadow-sm);
+        }
       }
     }
   }
 }
 
-.bookshelf {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 30px;
+// Grid Görünüm
+.books-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 2rem;
+  margin-bottom: 3rem;
   
-  .bookshelf-item {
-    flex: 0 0 calc(20% - 24px);
-    max-width: calc(20% - 24px);
-    height: 300px;
+  .book-item {
     cursor: pointer;
+    transition: transform 0.3s;
     
-    .book-title {
+    &:hover {
+      transform: translateY(-5px);
+      
+      .book-3d .book-cover {
+        transform: rotateY(-15deg);
+      }
+    }
+    
+    .book-3d {
+      height: 280px;
+      margin-bottom: 1rem;
+      perspective: 1000px;
+      
+      .book-cover {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        transform-style: preserve-3d;
+        transition: transform 0.5s;
+        
+        .cover-spine {
+          position: absolute;
+          left: -15px;
+          top: 0;
+          width: 15px;
+          height: 100%;
+          background: linear-gradient(90deg, #8b6914, #cdaa3d);
+          transform: rotateY(-90deg) translateZ(7.5px);
+        }
+        
+        .cover-front {
+          position: relative;
+          width: 100%;
+          height: 100%;
+          background: var(--bg-card);
+          border-radius: 0 8px 8px 0;
+          overflow: hidden;
+          box-shadow: var(--shadow-md);
+          
+          .book-image {
+            width: 100%;
+            height: 100%;
+            
+            img {
+              width: 100%;
+              height: 100%;
+              object-fit: cover;
+            }
+          }
+          
+          .book-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+            padding: 1.5rem 1rem;
+            color: white;
+            
+            .book-title {
+              font-size: 1.1rem;
+              margin-bottom: 0.25rem;
+            }
+            
+            .book-author {
+              font-size: 0.9rem;
+              opacity: 0.9;
+            }
+          }
+        }
+      }
+    }
+    
+    .book-info {
       text-align: center;
-      margin-top: 15px;
-      font-size: 1.1rem;
-    }
-    
-    @media (max-width: 1200px) {
-      flex: 0 0 calc(25% - 24px);
-      max-width: calc(25% - 24px);
-    }
-    
-    @media (max-width: 992px) {
-      flex: 0 0 calc(33.333% - 24px);
-      max-width: calc(33.333% - 24px);
-    }
-    
-    @media (max-width: 768px) {
-      flex: 0 0 calc(50% - 24px);
-      max-width: calc(50% - 24px);
-    }
-    
-    @media (max-width: 576px) {
-      flex: 0 0 100%;
-      max-width: 100%;
+      
+      h4 {
+        font-size: 1.1rem;
+        margin-bottom: 0.5rem;
+        color: var(--primary-color);
+      }
+      
+      .book-meta {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+        
+        .category {
+          color: var(--accent-color);
+          font-weight: 500;
+        }
+      }
     }
   }
 }
 
-.book {
-  height: 100%;
-  perspective: 1000px;
+// Liste Görünüm
+.books-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 3rem;
   
-  .book-cover {
-    height: 100%;
-    transform-style: preserve-3d;
-    transition: transform 0.6s;
-    position: relative;
+  .book-list-item {
+    display: flex;
+    gap: 1.5rem;
+    padding: 1.5rem;
+    cursor: pointer;
+    transition: all 0.3s;
     
-    .cover-front, .cover-back {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      backface-visibility: hidden;
-      border-radius: 4px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    &:hover {
+      transform: translateX(5px);
+      box-shadow: var(--shadow-lg);
     }
     
-    .cover-front {
-      background-size: cover;
-      background-position: center;
-      background-color: #f0f0f0;
-      display: flex;
-      align-items: flex-start;
+    .book-cover-small {
+      flex-shrink: 0;
+      width: 120px;
+      height: 160px;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: var(--shadow-md);
+      
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
     }
     
-    .book-spine {
-      position: absolute;
-      left: 0;
-      top: 0;
-      width: 40px;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.7);
-      color: white;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      writing-mode: vertical-lr;
-      transform: rotate(180deg);
+    .book-details {
+      flex: 1;
       
       h3 {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+        color: var(--primary-color);
+      }
+      
+      .book-description {
         font-size: 1rem;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        padding: 10px 5px;
+        line-height: 1.6;
+        color: var(--text-secondary);
+        margin-bottom: 1rem;
+      }
+      
+      .book-meta {
+        display: flex;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+        font-size: 0.9rem;
+        color: var(--text-light);
+        
+        span {
+          display: flex;
+          align-items: center;
+          gap: 0.25rem;
+        }
       }
     }
     
-    .cover-back {
-      transform: rotateY(180deg);
-      background-color: #f8f8f8;
-      padding: 20px;
+    .book-actions {
       display: flex;
       flex-direction: column;
+      gap: 0.5rem;
+      align-items: flex-end;
       justify-content: center;
-      
-      .book-summary {
-        text-align: center;
-        
-        h3 {
-          margin-bottom: 15px;
-          font-size: 1.3rem;
-        }
-        
-        p {
-          font-size: 0.9rem;
-          line-height: 1.4;
-          margin-bottom: 20px;
-          color: #666;
-        }
-        
-        .book-read-btn {
-          padding: 8px 16px;
-          font-size: 0.9rem;
-        }
-      }
     }
-  }
-  
-  &:hover .book-cover {
-    transform: rotateY(180deg);
   }
 }
 
-.loading-overlay {
+// Boş Durum
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  
+  .empty-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+  }
+  
+  h3 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+  }
+  
+  p {
+    color: var(--text-secondary);
+    margin-bottom: 2rem;
+  }
+}
+
+// Yükleniyor
+.loading-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 50px;
+  min-height: 400px;
   
-  .loading-spinner {
-    width: 50px;
-    height: 50px;
-    border: 5px solid #f3f3f3;
-    border-top: 5px solid #4a69bd;
+  p {
+    margin-top: 1rem;
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+  }
+}
+
+// Sayfalama
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 3rem;
+  
+  .page-btn {
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin-bottom: 20px;
+    border: 2px solid var(--primary-color);
+    background: var(--bg-card);
+    color: var(--primary-color);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+    
+    &:hover:not(:disabled) {
+      background: var(--primary-color);
+      color: white;
+    }
+    
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
   }
   
-  p {
-    font-size: 1.2rem;
-    color: #666;
+  .page-info {
+    font-weight: 500;
+    color: var(--text-secondary);
   }
 }
 
-.empty-state {
-  text-align: center;
-  padding: 50px;
-  
-  p {
-    font-size: 1.2rem;
-    color: #666;
+// Responsive
+@media (max-width: 768px) {
+  .bookshelf-header {
+    .page-title {
+      font-size: 2rem;
+    }
+    
+    .header-controls {
+      flex-direction: column;
+      gap: 1rem;
+      
+      .filter-select {
+        width: 100%;
+      }
+    }
   }
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  
+  .books-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 1.5rem;
+  }
+  
+  .books-list {
+    .book-list-item {
+      flex-direction: column;
+      text-align: center;
+      
+      .book-cover-small {
+        margin: 0 auto;
+      }
+      
+      .book-actions {
+        flex-direction: row;
+        justify-content: center;
+        width: 100%;
+      }
+    }
+  }
 }
 </style>

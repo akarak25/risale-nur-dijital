@@ -1,12 +1,16 @@
 const express = require('express');
 const router = express.Router();
 const bookmarkController = require('../controllers/bookmarkController');
+const { protect } = require('../middleware/auth');
+
+// Tüm bookmark işlemleri için authentication gerekli
+router.use(protect);
 
 // Kullanıcının tüm yer imlerini getir
-router.get('/user/:userId', bookmarkController.getUserBookmarks);
+router.get('/my', bookmarkController.getMyBookmarks);
 
 // Kullanıcının belirli bir kitaptaki yer imlerini getir
-router.get('/user/:userId/book/:bookId', bookmarkController.getBookmarksByBook);
+router.get('/book/:bookId', bookmarkController.getMyBookmarksByBook);
 
 // Yeni yer imi ekle
 router.post('/', bookmarkController.addBookmark);
