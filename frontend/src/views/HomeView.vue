@@ -11,7 +11,7 @@
           <span class="verse-ref">- Yunus Suresi, 57</span>
         </p>
         <div class="hero-actions">
-          <router-link to="/bookshelf" class="btn btn-primary">
+          <router-link to="/risale-i-nur-kutuphanesi" class="btn btn-primary">
             <span class="icon">📚</span>
             Kitaplığı Keşfet
           </router-link>
@@ -68,7 +68,7 @@
           <router-link 
             v-for="cat in categories" 
             :key="cat.id"
-            :to="`/bookshelf/${cat.slug}`"
+            :to="`/risale-i-nur-kutuphanesi/${cat.slug}`"
             class="category-card card"
           >
             <div class="category-icon">
@@ -110,52 +110,15 @@
 </template>
 
 <script>
+import axios from '@/utils/axios';
+
 export default {
   name: 'HomeView',
   data() {
     return {
-      featuredBooks: [
-        {
-          id: 'sozler',
-          title: 'Sözler',
-          description: 'İman hakikatlerini anlatan 33 Söz',
-          cover: require('@/assets/images/sözler.png'),
-          pages: 638,
-          category: 'Temel Eser'
-        },
-        {
-          id: 'mektubat',
-          title: 'Mektubat',
-          description: 'Nur talebelerine yazılan mektuplar',
-          cover: require('@/assets/images/mektubat.png'),
-          pages: 572,
-          category: 'Temel Eser'
-        },
-        {
-          id: 'lemalar',
-          title: "Lem'alar",
-          description: 'Işık parıltıları, 33 Lem\'a',
-          cover: require('@/assets/images/Lemalar.png'),
-          pages: 485,
-          category: 'Temel Eser'
-        },
-        {
-          id: 'sualar',
-          title: 'Şualar',
-          description: 'Nur\'un şuleleri, 15 Şua',
-          cover: require('@/assets/images/Şualar.png'),
-          pages: 612,
-          category: 'Temel Eser'
-        }
-      ],
-      categories: [
-        { id: 1, name: 'Sözler', slug: 'sozler', icon: require('@/assets/images/sözler.png'), count: 33 },
-        { id: 2, name: 'Mektubat', slug: 'mektubat', icon: require('@/assets/images/mektubat.png'), count: 29 },
-        { id: 3, name: "Lem'alar", slug: 'lemalar', icon: require('@/assets/images/Lemalar.png'), count: 33 },
-        { id: 4, name: 'Şualar', slug: 'sualar', icon: require('@/assets/images/Şualar.png'), count: 15 },
-        { id: 5, name: 'Mesnevî-i Nuriye', slug: 'mesnevi', icon: require('@/assets/images/Mesnevi i nuriye.png'), count: 11 },
-        { id: 6, name: 'Diğer Eserler', slug: 'diger', icon: require('@/assets/images/Muhakemat.png'), count: 25 }
-      ],
+      featuredBooks: [],
+      allBooks: [],
+      categories: [],
       features: [
         {
           id: 1,
@@ -201,9 +164,129 @@ export default {
       }
     }
   },
+  async created() {
+    await this.loadBooks();
+    this.setupCategories();
+  },
   methods: {
+    async loadBooks() {
+      try {
+        const response = await axios.get('/books');
+        this.allBooks = response.data;
+        
+        // Öne çıkan kitapları seç (ilk 4 ana kitap)
+        const mainTitles = ['Sözler', 'Mektubat', "Lem'alar", 'Şualar'];
+        this.featuredBooks = this.allBooks
+          .filter(book => mainTitles.some(title => book.title.includes(title)))
+          .slice(0, 4)
+          .map(book => ({
+            id: book._id,
+            title: book.title,
+            description: book.description || this.getDefaultDescription(book.title),
+            cover: book.coverImage || this.getDefaultCover(book.title),
+            pages: book.totalPages || 0,
+            category: book.category
+          }));
+          
+        // Eğer 4'ten az kitap varsa, diğerlerinden ekle
+        if (this.featuredBooks.length < 4) {
+          const additionalBooks = this.allBooks
+            .filter(book => !this.featuredBooks.find(fb => fb.id === book._id))
+            .slice(0, 4 - this.featuredBooks.length);
+          
+          this.featuredBooks.push(...additionalBooks.map(book => ({
+            id: book._id,
+            title: book.title,
+            description: book.description || 'Risale-i Nur Külliyatı\'ndan',
+            cover: book.coverImage || this.getDefaultCover(book.title),
+            pages: book.totalPages || 0,
+            category: book.category
+          })));
+        }
+      } catch (error) {
+        console.error('Kitaplar yüklenemedi:', error);
+      }
+    },
+    
+    setupCategories() {
+      // Kategorileri kitap sayılarıyla birlikte oluştur
+      const categoryMap = {
+        'Sözler': { icon: require('@/assets/images/sözler.png'), order: 1 },
+        'Mektubat': { icon: require('@/assets/images/mektubat.png'), order: 2 },
+        "Lem'alar": { icon: require('@/assets/images/Lemalar.png'), order: 3 },
+        'Şualar': { icon: require('@/assets/images/Şualar.png'), order: 4 },
+        'Mesnevî-i Nuriye': { icon: require('@/assets/images/Mesnevi i nuriye.png'), order: 5 },
+        'İşarât-ül İ\'caz': { icon: require('@/assets/images/Muhakemat.png'), order: 6 },
+        'Barla Lâhikası': { icon: require('@/assets/images/Muhakemat.png'), order: 7 },
+        'Kastamonu Lâhikası': { icon: require('@/assets/images/Muhakemat.png'), order: 8 },
+        'Emirdağ Lâhikası': { icon: require('@/assets/images/Muhakemat.png'), order: 9 },
+        'Diğer': { icon: require('@/assets/images/Muhakemat.png'), order: 10 }
+      };
+      
+      // Kitapları kategorilere göre grupla
+      const categoryCounts = {};
+      this.allBooks.forEach(book => {
+        if (!categoryCounts[book.category]) {
+          categoryCounts[book.category] = 0;
+        }
+        categoryCounts[book.category]++;
+      });
+      
+      // Kategorileri oluştur
+      this.categories = Object.entries(categoryCounts).map(([category, count]) => {
+        const info = categoryMap[category] || { icon: require('@/assets/images/Muhakemat.png'), order: 99 };
+        return {
+          id: info.order,
+          name: category,
+          slug: category,
+          icon: info.icon,
+          count: count
+        };
+      }).sort((a, b) => a.id - b.id);
+    },
+    
+    getDefaultCover(title) {
+      const coverMap = {
+        'Sözler': require('@/assets/images/sözler.png'),
+        'Mektubat': require('@/assets/images/mektubat.png'),
+        "Lem'alar": require('@/assets/images/Lemalar.png'),
+        'Şualar': require('@/assets/images/Şualar.png'),
+        'Mesnevî-i Nuriye': require('@/assets/images/Mesnevi i nuriye.png'),
+        'Muhakemat': require('@/assets/images/Muhakemat.png'),
+        'Sikke-i Tasdik-i Gaybî': require('@/assets/images/sikkei tasdiki gaybi.png')
+      };
+      
+      for (const [key, value] of Object.entries(coverMap)) {
+        if (title.includes(key)) return value;
+      }
+      
+      return require('@/assets/images/Muhakemat.png');
+    },
+    
+    getDefaultDescription(title) {
+      const descriptions = {
+        'Sözler': 'İman hakikatlerini anlatan 33 Söz',
+        'Mektubat': 'Nur talebelerine yazılan mektuplar',
+        "Lem'alar": 'Işık parıltıları, 33 Lem\'a',
+        'Şualar': 'Nur\'un şuleleri, 15 Şua',
+        'Mesnevî-i Nuriye': 'Arapça yazılmış nurlu mesnevi',
+        'İşarât-ül İ\'caz': 'Kur\'an tefsiri',
+        'Barla Lâhikası': 'Barla döneminde yazılan mektuplar',
+        'Kastamonu Lâhikası': 'Kastamonu döneminde yazılan mektuplar',
+        'Emirdağ Lâhikası': 'Emirdağ döneminde yazılan mektuplar'
+      };
+      
+      for (const [key, value] of Object.entries(descriptions)) {
+        if (title.includes(key)) return value;
+      }
+      
+      return 'Risale-i Nur Külliyatı\'ndan';
+    },
     openBook(bookId) {
-      this.$router.push({ name: 'reader', params: { bookId } });
+      this.$router.push({ 
+        name: 'reader', 
+        params: { bookId: bookId }
+      });
     },
     scrollToFeatures() {
       document.getElementById('features').scrollIntoView({ behavior: 'smooth' });

@@ -18,66 +18,66 @@ const routes = [
     component: HomeView
   },
   {
-    path: '/bookshelf',
+    path: '/risale-i-nur-kutuphanesi',
     name: 'bookshelf',
     component: BookshelfView
   },
   {
-    path: '/bookshelf/:category',
+    path: '/risale-i-nur-kutuphanesi/:category',
     name: 'bookshelf-category',
     component: BookshelfView,
     props: true
   },
   {
-    path: '/read/:bookId',
+    path: '/kitap-oku/:bookId',
     name: 'reader',
     component: ReaderView,
     props: true
   },
   {
-    path: '/read/:bookId/page/:pageNumber',
+    path: '/kitap-oku/:bookId/sayfa/:pageNumber',
     name: 'reader-page',
     component: ReaderView,
     props: true
   },
   {
-    path: '/search',
+    path: '/arama',
     name: 'search-results',
     component: SearchResultsView,
     props: route => ({ query: route.query.q })
   },
   {
-    path: '/bookmarks',
+    path: '/yer-imleri',
     name: 'bookmarks',
     component: BookmarksView,
     meta: { requiresAuth: true }
   },
   {
-    path: '/profile',
+    path: '/profil',
     name: 'profile',
     component: ProfileView,
     meta: { requiresAuth: true }
   },
   {
-    path: '/login',
+    path: '/giris',
     name: 'login',
     component: LoginView,
     meta: { guestOnly: true }
   },
   {
-    path: '/register',
+    path: '/kayit',
     name: 'register',
     component: RegisterView,
     meta: { guestOnly: true }
   },
   {
-    path: '/forgot-password',
+    path: '/sifremi-unuttum',
     name: 'forgot-password',
     component: ForgotPasswordView,
     meta: { guestOnly: true }
   },
   {
-    path: '/about',
+    path: '/hakkinda',
     name: 'about',
     // Route level code-splitting
     // this generates a separate chunk (about.[hash].js) for this route
@@ -114,6 +114,18 @@ const routes = [
     path: '/admin/dictionary',
     name: 'admin-dictionary',
     component: () => import('../views/admin/AdminDictionary.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true }
+  },
+  {
+    path: '/admin/books/import',
+    name: 'admin-book-import',
+    component: () => import('../views/admin/AdminBookImport.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true }
+  },
+  {
+    path: '/admin/books/import-single',
+    name: 'admin-single-book-import',
+    component: () => import('../views/admin/AdminSingleBookImport.vue'),
     meta: { requiresAuth: true, requiresAdmin: true }
   }
 ]

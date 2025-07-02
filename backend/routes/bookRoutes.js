@@ -29,4 +29,7 @@ router.put('/:id', bookController.updateBook);
 // Kitap sil (Admin)
 router.delete('/:id', bookController.deleteBook);
 
+// Toplu kitap içe aktarma (Admin)
+router.post('/import', bookController.importBooks);
+
 module.exports = router;

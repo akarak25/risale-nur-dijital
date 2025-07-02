@@ -61,7 +61,7 @@
                   required
                   :disabled="loading"
                 >
-                <p class="form-hint" v-if="!user.isEmailVerified">
+                <p class="form-hint" v-if="user && !user.isEmailVerified">
                   <span class="warning-icon">⚠️</span>
                   Email adresiniz doğrulanmamış
                 </p>
@@ -82,20 +82,20 @@
             <div class="info-grid">
               <div class="info-item">
                 <span class="info-label">Kayıt Tarihi:</span>
-                <span class="info-value">{{ formatDate(user.createdAt) }}</span>
+                <span class="info-value">{{ formatDate(user?.createdAt) }}</span>
               </div>
               <div class="info-item">
                 <span class="info-label">Son Giriş:</span>
-                <span class="info-value">{{ formatDate(user.lastLogin) }}</span>
+                <span class="info-value">{{ formatDate(user?.lastLogin) }}</span>
               </div>
               <div class="info-item">
                 <span class="info-label">Hesap Türü:</span>
-                <span class="info-value">{{ user.role === 'admin' ? 'Yönetici' : 'Kullanıcı' }}</span>
+                <span class="info-value">{{ user?.role === 'admin' ? 'Yönetici' : 'Kullanıcı' }}</span>
               </div>
               <div class="info-item">
                 <span class="info-label">Hesap Durumu:</span>
-                <span class="info-value status" :class="{ active: user.isActive }">
-                  {{ user.isActive ? 'Aktif' : 'Pasif' }}
+                <span class="info-value status" :class="{ active: user?.isActive }">
+                  {{ user?.isActive ? 'Aktif' : 'Pasif' }}
                 </span>
               </div>
             </div>
@@ -531,7 +531,9 @@ export default {
         profileForm.email = user.value.email;
         
         // Tercihleri ayarla
-        Object.assign(preferences, user.value.preferences);
+        if (user.value.preferences) {
+          Object.assign(preferences, user.value.preferences);
+        }
         
         // İstatistikleri yükle
         loadStats();

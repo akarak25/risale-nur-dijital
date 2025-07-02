@@ -34,11 +34,14 @@
       <div class="action-section">
         <h2><i class="fas fa-upload"></i> İçerik Aktarma</h2>
         <div class="import-options">
-          <button @click="showImportModal = true" class="primary-btn">
-            <i class="fas fa-file-import"></i> Diyanet Verilerini Aktar
-          </button>
-          <button @click="showBulkImport = true" class="secondary-btn">
-            <i class="fas fa-folder-plus"></i> Klasörden Kitap Ekle
+          <router-link to="/admin/books/import" class="primary-btn">
+            <i class="fas fa-file-import"></i> Toplu Kitap İçe Aktar
+          </router-link>
+          <router-link to="/admin/books/import-single" class="primary-btn">
+            <i class="fas fa-book-medical"></i> Tekli Kitap Ekle
+          </router-link>
+          <button @click="showImportModal = true" class="secondary-btn">
+            <i class="fas fa-file-alt"></i> Eski Yöntem
           </button>
         </div>
       </div>
@@ -231,8 +234,15 @@ export default {
   methods: {
     async loadStats() {
       try {
-        const response = await axios.get('/admin/stats');
-        this.stats = response.data;
+        // Kitap sayısını al
+        const booksResponse = await axios.get('/books');
+        this.stats.totalBooks = booksResponse.data.length;
+        
+        // Diğer istatistikler için varsayılan değerler
+        // Backend'de bu endpoint'ler eklendiğinde güncellenecek
+        this.stats.totalPages = 0;
+        this.stats.totalWords = 0;
+        this.stats.totalUsers = 0;
       } catch (error) {
         console.error('İstatistikler yüklenemedi:', error);
       }
@@ -265,11 +275,10 @@ export default {
           this.importProgress.percent = ((i + 1) / this.selectedBooks.length) * 100;
           this.importProgress.message = `${bookInfo.name} aktarılıyor...`;
           
-          await axios.post('/admin/import/diyanet', {
-            bookId,
-            format: this.importSettings.format,
-            sourcePath: this.bulkImportPath
-          });
+          // Direkt olarak books/import endpoint'ini kullan
+          // Bu işlem yeni import sayfasına yönlendirelim
+          this.$router.push('/admin/books/import');
+          return;
         }
         
         this.importProgress.message = 'Tüm kitaplar başarıyla aktarıldı!';
@@ -294,13 +303,9 @@ export default {
       }
       
       try {
-        const response = await axios.post('/admin/import/bulk', {
-          path: this.bulkImportPath
-        });
-        
-        alert(`${response.data.imported} kitap başarıyla eklendi!`);
+        // Yeni import sayfasına yönlendir
+        this.$router.push('/admin/books/import');
         this.showBulkImport = false;
-        this.loadStats();
       } catch (error) {
         console.error('Toplu import hatası:', error);
         alert('Hata: ' + error.message);
@@ -333,8 +338,14 @@ export default {
           return;
         }
         
-        const response = await axios.post('/admin/dictionary/import', { words });
-        alert(`${response.data.imported} kelime başarıyla eklendi!`);
+        const response = await axios.post('/dictionary/bulk', { words });
+        if (response.data.imported !== undefined) {
+          alert(`${response.data.imported} kelime başarıyla eklendi!`);
+        } else if (response.data.added !== undefined) {
+          alert(`${response.data.added} kelime eklendi!`);
+        } else {
+          alert('Kelimeler başarıyla eklendi!');
+        }
         this.showDictionaryImport = false;
         this.dictionaryJson = '';
         this.loadStats();

@@ -81,7 +81,7 @@
             <span class="icon">🏠</span>
             Ana Sayfa
           </router-link>
-          <router-link to="/bookshelf" @click="toggleMenu" class="menu-item">
+          <router-link to="/risale-i-nur-kutuphanesi" @click="toggleMenu" class="menu-item">
             <span class="icon">📚</span>
             Kitaplık
           </router-link>
@@ -138,10 +138,10 @@
         <div class="footer-section">
           <h4>Hızlı Erişim</h4>
           <div class="footer-links">
-            <router-link to="/bookshelf/sozler">Sözler</router-link>
-            <router-link to="/bookshelf/mektubat">Mektubat</router-link>
-            <router-link to="/bookshelf/lemalar">Lem'alar</router-link>
-            <router-link to="/bookshelf/sualar">Şualar</router-link>
+            <router-link to="/risale-i-nur-kutuphanesi/Sözler">Sözler</router-link>
+            <router-link to="/risale-i-nur-kutuphanesi/Mektubat">Mektubat</router-link>
+            <router-link to="/risale-i-nur-kutuphanesi/Lem'alar">Lem'alar</router-link>
+            <router-link to="/risale-i-nur-kutuphanesi/Şualar">Şualar</router-link>
           </div>
         </div>
         

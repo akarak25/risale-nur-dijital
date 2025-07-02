@@ -115,10 +115,59 @@ exports.deleteWord = async (req, res) => {
       return res.status(404).json({ message: 'Kelime bulunamadı.' });
     }
     
-    await dictionaryEntry.remove();
+    await Dictionary.deleteOne({ _id: id });
     res.status(200).json({ message: 'Kelime başarıyla silindi.' });
   } catch (error) {
     console.error('Kelime silinirken hata oluştu:', error);
     res.status(500).json({ message: 'Kelime silinirken bir hata oluştu.' });
+  }
+};
+
+// Toplu kelime ekle (Admin kullanımı için)
+exports.addBulkWords = async (req, res) => {
+  try {
+    const { words } = req.body;
+    
+    if (!words || !Array.isArray(words)) {
+      return res.status(400).json({ message: 'Geçersiz kelime listesi.' });
+    }
+    
+    let addedCount = 0;
+    let skippedCount = 0;
+    
+    for (const wordData of words) {
+      try {
+        // Kelimenin varlığını kontrol et
+        const existingWord = await Dictionary.findOne({ 
+          word: wordData.word 
+        });
+        
+        if (!existingWord) {
+          await Dictionary.create({
+            word: wordData.word,
+            meaning: wordData.meaning || 'Henüz anlamı eklenmemiş',
+            example: wordData.example || ''
+          });
+          addedCount++;
+        } else {
+          skippedCount++;
+        }
+      } catch (error) {
+        // Tek bir kelime hatası tüm işlemi durdurmasın
+        console.error(`Kelime eklenirken hata: ${wordData.word}`, error);
+      }
+    }
+    
+    res.status(200).json({ 
+      message: `${addedCount} kelime eklendi, ${skippedCount} kelime zaten mevcut.`,
+      imported: addedCount,  // Frontend bu alanı bekliyor
+      added: addedCount,
+      skipped: skippedCount,
+      total: words.length
+    });
+    
+  } catch (error) {
+    console.error('Toplu kelime eklenirken hata oluştu:', error);
+    res.status(500).json({ message: 'Toplu kelime eklenirken bir hata oluştu.' });
   }
 };

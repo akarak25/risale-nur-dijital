@@ -2,9 +2,17 @@
   <div class="admin-books">
     <div class="page-header">
       <h1>Kitap Yönetimi</h1>
-      <router-link to="/admin/books/add" class="add-btn">
-        <i class="fas fa-plus"></i> Yeni Kitap Ekle
-      </router-link>
+      <div class="header-actions">
+        <router-link to="/admin/books/import" class="import-btn">
+          <i class="fas fa-file-import"></i> Toplu İçe Aktar
+        </router-link>
+        <router-link to="/admin/books/import-single" class="single-import-btn">
+          <i class="fas fa-book-medical"></i> Tekli Kitap Ekle
+        </router-link>
+        <router-link to="/admin/books/add" class="add-btn">
+          <i class="fas fa-plus"></i> Hızlı Ekle
+        </router-link>
+      </div>
     </div>
 
     <div class="search-box">
@@ -149,9 +157,15 @@ export default {
   color: #2c3e50;
 }
 
-.add-btn {
-  background: #3498db;
-  color: white;
+.header-actions {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.add-btn,
+.import-btn,
+.single-import-btn {
   padding: 10px 20px;
   border-radius: 5px;
   text-decoration: none;
@@ -161,8 +175,31 @@ export default {
   transition: background 0.2s;
 }
 
+.add-btn {
+  background: #3498db;
+  color: white;
+}
+
 .add-btn:hover {
   background: #2980b9;
+}
+
+.import-btn {
+  background: #2ecc71;
+  color: white;
+}
+
+.import-btn:hover {
+  background: #27ae60;
+}
+
+.single-import-btn {
+  background: #e67e22;
+  color: white;
+}
+
+.single-import-btn:hover {
+  background: #d35400;
 }
 
 .search-box {

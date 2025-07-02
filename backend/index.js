@@ -4,6 +4,8 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const mongoose = require('mongoose');
+const http = require('http');
+const WebSocket = require('ws');
 
 // Routes
 const authRoutes = require('./routes/authRoutes');
@@ -59,11 +61,83 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Sunucu hatası oluştu!' });
 });
 
+// HTTP Server oluştur
+const server = http.createServer(app);
+
+// WebSocket server oluştur
+const wss = new WebSocket.Server({ 
+  server,
+  path: '/import'
+});
+
+// Global WebSocket client listesi
+global.importClients = {};
+
+// WebSocket bağlantılarını yönet
+wss.on('connection', (ws, req) => {
+  // URL'den import ID'yi al
+  const urlParts = req.url.split('/');
+  const importId = urlParts[urlParts.length - 1];
+  
+  console.log(`WebSocket bağlantısı kuruldu: ${importId}`);
+  
+  // Client'ı listeye ekle
+  if (!global.importClients[importId]) {
+    global.importClients[importId] = [];
+  }
+  global.importClients[importId].push(ws);
+  
+  // Mevcut durumu gönder
+  if (global.importJobs && global.importJobs[importId]) {
+    const job = global.importJobs[importId];
+    
+    // Mevcut logları gönder
+    job.logs.forEach(log => {
+      ws.send(JSON.stringify({
+        type: 'log',
+        level: log.type,
+        message: log.message
+      }));
+    });
+    
+    // Durum bilgisi gönder
+    if (job.status === 'completed') {
+      ws.send(JSON.stringify({
+        type: 'complete',
+        message: 'İçe aktarma tamamlandı',
+        stats: job.stats
+      }));
+    } else if (job.status === 'failed') {
+      ws.send(JSON.stringify({
+        type: 'error',
+        message: 'İçe aktarma başarısız'
+      }));
+    }
+  }
+  
+  // Bağlantı kapandığında
+  ws.on('close', () => {
+    console.log(`WebSocket bağlantısı kapatıldı: ${importId}`);
+    if (global.importClients[importId]) {
+      global.importClients[importId] = global.importClients[importId].filter(client => client !== ws);
+      if (global.importClients[importId].length === 0) {
+        delete global.importClients[importId];
+      }
+    }
+  });
+  
+  // Hata durumunda
+  ws.on('error', (error) => {
+    console.error('WebSocket hatası:', error);
+  });
+});
+
 // Port dinleme
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`🚀 Server ${PORT} portunda çalışıyor`);
   console.log(`📚 Risale-i Nur Dijital Kütüphane hazır!`);
+  console.log(`🔌 WebSocket server hazır`);
 });
 
 module.exports = app;

@@ -21,7 +21,7 @@ const bookSchema = new mongoose.Schema({
   },
   category: {
     type: String,
-    enum: ['Sözler', 'Mektubat', 'Lem\'alar', 'Şualar', 'İşarât-ül İ\'caz', 'Mesnevî-i Nuriye', 'Barla Lâhikası', 'Kastamonu Lâhikası', 'Emirdağ Lâhikası', 'Diğer'],
+    enum: ['Sözler', 'Mektubat', 'Lem\'alar', 'Şualar', 'İşarât-ül İ\'caz', 'Mesnevî-i Nuriye', 'Barla Lâhikası', 'Kastamonu Lâhikası', 'Emirdağ Lâhikası', 'Risale-i Nur', 'Diğer'],
     required: true
   },
   description: {
@@ -33,7 +33,8 @@ const bookSchema = new mongoose.Schema({
   },
   order: {
     type: Number,
-    required: true
+    required: true,
+    default: 999
   },
   createdAt: {
     type: Date,

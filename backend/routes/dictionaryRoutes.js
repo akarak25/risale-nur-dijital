@@ -20,4 +20,7 @@ router.put('/:id', dictionaryController.updateWord);
 // Kelime sil (Admin)
 router.delete('/:id', dictionaryController.deleteWord);
 
+// Toplu kelime ekle (Admin)
+router.post('/bulk', dictionaryController.addBulkWords);
+
 module.exports = router;

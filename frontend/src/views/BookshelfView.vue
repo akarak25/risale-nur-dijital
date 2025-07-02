@@ -143,6 +143,8 @@
 </template>
 
 <script>
+import axios from '@/utils/axios';
+
 export default {
   name: 'BookshelfView',
   props: {
@@ -160,17 +162,23 @@ export default {
       booksPerPage: 12,
       searchQuery: '',
       categories: [
-        { id: 1, name: 'Sözler', slug: 'sozler' },
-        { id: 2, name: 'Mektubat', slug: 'mektubat' },
-        { id: 3, name: "Lem'alar", slug: 'lemalar' },
-        { id: 4, name: 'Şualar', slug: 'sualar' },
-        { id: 5, name: 'Mesnevî-i Nuriye', slug: 'mesnevi' },
-        { id: 6, name: 'İşarat-ül İ\'caz', slug: 'isarat' },
-        { id: 7, name: 'Barla Lâhikası', slug: 'barla' },
-        { id: 8, name: 'Kastamonu Lâhikası', slug: 'kastamonu' },
-        { id: 9, name: 'Emirdağ Lâhikası', slug: 'emirdag' }
+        { id: 1, name: 'Sözler', slug: 'Sözler' },
+        { id: 2, name: 'Mektubat', slug: 'Mektubat' },
+        { id: 3, name: "Lem'alar", slug: "Lem'alar" },
+        { id: 4, name: 'Şualar', slug: 'Şualar' },
+        { id: 5, name: 'Mesnevî-i Nuriye', slug: 'Mesnevî-i Nuriye' },
+        { id: 6, name: 'İşarât-ül İ\'caz', slug: 'İşarât-ül İ\'caz' },
+        { id: 7, name: 'Barla Lâhikası', slug: 'Barla Lâhikası' },
+        { id: 8, name: 'Kastamonu Lâhikası', slug: 'Kastamonu Lâhikası' },
+        { id: 9, name: 'Emirdağ Lâhikası', slug: 'Emirdağ Lâhikası' },
+        { id: 10, name: 'Tarihçe-i Hayat', slug: 'Tarihçe-i Hayat' },
+        { id: 11, name: 'Sikke-i Tasdik-i Gaybî', slug: 'Sikke-i Tasdik-i Gaybî' },
+        { id: 12, name: 'Asâ-yı Musa', slug: 'Asâ-yı Musa' },
+        { id: 13, name: 'Küçük Kitaplar', slug: 'Küçük Kitaplar' },
+        { id: 14, name: 'Risale-i Nur', slug: 'Risale-i Nur' },
+        { id: 15, name: 'Diğer', slug: 'Diğer' }
       ],
-      books: [] // Demo kitaplar
+      books: [], // Veritabanından gelecek
     }
   },
   computed: {
@@ -213,11 +221,11 @@ export default {
       return Math.ceil(this.filteredBooksCount / this.booksPerPage);
     },
     bookmarkedBooks() {
-      return this.$store?.state?.bookmarks || [];
+      return [];
     }
   },
-  created() {
-    this.loadBooks();
+  async created() {
+    await this.loadBooks();
   },
   watch: {
     category(newCategory) {
@@ -229,56 +237,43 @@ export default {
     async loadBooks() {
       this.loading = true;
       try {
-        // Demo kitaplar oluştur
-        this.books = [
-          {
-            id: 'sozler-1',
-            title: 'Sözler',
-            author: 'Bediüzzaman Said Nursi',
-            description: 'İman hakikatlerini inceleyen otuz üç söz',
-            coverImage: require('@/assets/images/sözler.png'),
-            category: 'sozler',
-            pageCount: 638
-          },
-          {
-            id: 'mektubat-1',
-            title: 'Mektubat',
-            author: 'Bediüzzaman Said Nursi',
-            description: 'Nur talebelerine yazılmış mektuplar',
-            coverImage: require('@/assets/images/mektubat.png'),
-            category: 'mektubat',
-            pageCount: 572
-          },
-          {
-            id: 'lemalar-1',
-            title: "Lem'alar",
-            author: 'Bediüzzaman Said Nursi',
-            description: 'Otuz üç lem\'a - ışık parıltıları',
-            coverImage: require('@/assets/images/Lemalar.png'),
-            category: 'lemalar',
-            pageCount: 485
-          },
-          {
-            id: 'sualar-1',
-            title: 'Şualar',
-            author: 'Bediüzzaman Said Nursi',
-            description: 'On beş şua - nur\'un şuleleri',
-            coverImage: require('@/assets/images/Şualar.png'),
-            category: 'sualar',
-            pageCount: 612
-          }
-        ];
-        
-        // API çağrısı simülasyonu
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // API'den kitapları çek
+        const response = await axios.get('/books');
+        this.books = response.data.map(book => ({
+          id: book._id,
+          title: book.title,
+          author: book.author,
+          description: book.description,
+          coverImage: book.coverImage || this.getDefaultCover(book.title),
+          category: book.category,
+          pageCount: book.totalPages || 0
+        }));
       } catch (error) {
         console.error('Kitaplar yüklenemedi:', error);
       } finally {
         this.loading = false;
       }
     },
+    
+    getDefaultCover(title) {
+      // Varsayılan kapak resimlerini eşleştir
+      const coverMap = {
+        'Sözler': require('@/assets/images/sözler.png'),
+        'Mektubat': require('@/assets/images/mektubat.png'),
+        "Lem'alar": require('@/assets/images/Lemalar.png'),
+        'Şualar': require('@/assets/images/Şualar.png'),
+        'Mesnevî-i Nuriye': require('@/assets/images/Mesnevi i nuriye.png'),
+        'Muhakemat': require('@/assets/images/Muhakemat.png'),
+        'Sikke-i Tasdik-i Gaybî': require('@/assets/images/sikkei tasdiki gaybi.png')
+      };
+      
+      return coverMap[title] || '/images/default-book-cover.jpg';
+    },
     openBook(bookId) {
-      this.$router.push({ name: 'reader', params: { bookId } });
+      this.$router.push({ 
+        name: 'reader', 
+        params: { bookId: bookId }
+      });
     },
     filterBooks() {
       this.currentPage = 1;
@@ -302,18 +297,11 @@ export default {
       return cat ? cat.name : '';
     },
     isBookmarked(bookId) {
-      return this.bookmarkedBooks.some(b => b.bookId === bookId);
+      return false; // TODO: Implement bookmark check
     },
     toggleBookmark(bookId) {
-      if (this.isBookmarked(bookId)) {
-        this.$store.dispatch('removeBookmark', bookId);
-      } else {
-        this.$store.dispatch('addBookmark', {
-          bookId,
-          pageNumber: 1,
-          name: 'Kitap Başlangıcı'
-        });
-      }
+      console.log('Bookmark toggled for:', bookId);
+      // TODO: Implement bookmark functionality
     }
   }
 }

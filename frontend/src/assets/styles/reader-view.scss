@@ -1,811 +1,448 @@
+// eRisale benzeri basit tasarım
 .reader-view {
+  width: 100%;
   height: 100vh;
   display: flex;
+  background: #fff;
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  color: #333;
+  overflow: hidden;
+}
+
+// Sol Panel - Kitap Listesi
+.left-panel {
+  width: 250px;
+  background: #f0f0f0;
+  border-right: 1px solid #ccc;
+  display: flex;
   flex-direction: column;
-  background: var(--bg-primary);
-  color: var(--text-primary);
   overflow: hidden;
   
-  // Tema varyasyonları
-  &.sepia-mode {
-    --bg-primary: #f4ecd8;
-    --bg-secondary: #ede0c8;
-    --bg-card: #faf6ed;
-    --text-primary: #5c4b37;
-    --text-secondary: #8b7355;
+  // Başlık
+  .panel-header {
+    padding: 10px;
+    background: #e0e0e0;
+    border-bottom: 1px solid #ccc;
+    font-weight: bold;
+    font-size: 13px;
+    color: #333;
   }
   
-  &.dark-mode {
-    .page {
-      background: #2c2c2c;
-      color: #e0e0e0;
-    }
-  }
-}
-
-// Header
-.reader-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 2rem;
-  background: var(--bg-card);
-  box-shadow: var(--shadow-sm);
-  z-index: 100;
-  
-  .header-left {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
+  // Kitap listesi
+  .books-list {
+    flex: 1;
+    overflow-y: auto;
+    font-size: 13px;
     
-    .back-btn {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      text-decoration: none;
-      color: var(--primary-color);
-      font-weight: 500;
-      transition: all 0.3s;
+    // Ana kitap
+    .book-group {
+      border-bottom: 1px solid #ddd;
       
-      &:hover {
-        transform: translateX(-3px);
-      }
-    }
-    
-    .book-info {
-      .book-title {
-        font-size: 1.5rem;
-        margin: 0;
-        font-weight: 600;
-      }
-      
-      .reading-progress {
-        font-size: 0.9rem;
-        color: var(--text-secondary);
-        
-        .current-page {
-          color: var(--accent-color);
-          font-weight: 600;
-        }
-      }
-    }
-  }
-  
-  .header-controls {
-    display: flex;
-    gap: 0.5rem;
-    
-    .control-btn {
-      background: none;
-      border: none;
-      padding: 0.75rem;
-      border-radius: 8px;
-      cursor: pointer;
-      position: relative;
-      transition: all 0.3s;
-      color: var(--text-primary);
-      
-      &:hover {
-        background: var(--bg-secondary);
-        
-        .tooltip {
-          opacity: 1;
-          visibility: visible;
-          transform: translateY(0);
-        }
-      }
-      
-      &.active {
-        background: var(--primary-color);
-        color: white;
-      }
-      
-      .icon {
-        font-size: 1.25rem;
-      }
-      
-      .tooltip {
-        position: absolute;
-        bottom: -35px;
-        left: 50%;
-        transform: translateX(-50%) translateY(5px);
-        background: rgba(0, 0, 0, 0.8);
-        color: white;
-        padding: 0.25rem 0.75rem;
-        border-radius: 4px;
-        font-size: 0.875rem;
-        white-space: nowrap;
-        opacity: 0;
-        visibility: hidden;
-        transition: all 0.3s;
-      }
-    }
-  }
-}
-
-// Ana içerik
-.reader-content {
-  flex: 1;
-  display: flex;
-  overflow: hidden;
-}
-
-// Sol panel
-.side-panel {
-  width: 350px;
-  background: var(--bg-card);
-  border-right: 1px solid var(--bg-secondary);
-  overflow-y: auto;
-  box-shadow: var(--shadow-md);
-  
-  .panel-content {
-    padding: 2rem;
-  }
-  
-  .panel-title {
-    margin-bottom: 1.5rem;
-    color: var(--primary-color);
-  }
-  
-  // İçindekiler
-  .contents-tree {
-    .chapter-item {
-      margin-bottom: 1rem;
-      
-      .chapter-header {
-        display: flex;
-        gap: 1rem;
-        padding: 0.75rem;
-        border-radius: 8px;
+      .book-header {
+        padding: 8px 10px;
+        background: #f8f8f8;
         cursor: pointer;
-        transition: all 0.3s;
+        font-weight: bold;
+        color: #0066cc;
+        display: flex;
+        align-items: center;
         
         &:hover {
-          background: var(--bg-secondary);
+          background: #e8e8e8;
         }
         
-        .chapter-number {
-          color: var(--accent-color);
-          font-weight: 600;
-        }
-      }
-      
-      &.active .chapter-header {
-        background: var(--primary-light);
-        color: white;
-        
-        .chapter-number {
-          color: var(--accent-light);
+        .arrow {
+          margin-right: 5px;
+          font-size: 10px;
+          transition: transform 0.2s;
+          
+          &.expanded {
+            transform: rotate(90deg);
+          }
         }
       }
       
-      .sub-chapters {
-        margin-left: 2rem;
-        margin-top: 0.5rem;
+      // Bölümler
+      .chapters {
+        display: none;
         
-        .sub-chapter {
-          padding: 0.5rem;
-          border-radius: 4px;
+        &.show {
+          display: block;
+        }
+        
+        .chapter {
+          padding: 6px 10px 6px 25px;
           cursor: pointer;
-          font-size: 0.9rem;
-          color: var(--text-secondary);
+          color: #333;
+          border-bottom: 1px solid #eee;
           
           &:hover {
-            background: var(--bg-secondary);
+            background: #f0f0f0;
+            color: #0066cc;
           }
           
           &.active {
-            color: var(--primary-color);
-            font-weight: 500;
+            background: #e0e0e0;
+            font-weight: bold;
+            color: #000;
           }
         }
       }
     }
   }
+}
+
+// Sağ Panel - İçerik
+.right-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+// Üst Bar
+.top-bar {
+  height: 40px;
+  background: #f0f0f0;
+  border-bottom: 1px solid #ccc;
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
   
-  // Arama
-  .search-box {
+  .nav-section {
     display: flex;
-    gap: 0.5rem;
-    margin-bottom: 1.5rem;
+    align-items: center;
+    gap: 10px;
     
-    .search-input {
-      flex: 1;
-      padding: 0.75rem;
-      border: 2px solid var(--bg-secondary);
-      border-radius: 8px;
-      font-size: 1rem;
+    .book-info {
+      font-size: 13px;
+      color: #666;
       
-      &:focus {
-        outline: none;
-        border-color: var(--primary-color);
+      strong {
+        color: #333;
       }
     }
-  }
-  
-  .search-results {
-    .search-result {
-      padding: 1rem;
-      margin-bottom: 0.75rem;
-      background: var(--bg-secondary);
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.3s;
-      
-      &:hover {
-        transform: translateX(5px);
-      }
-      
-      .result-page {
-        font-size: 0.875rem;
-        color: var(--accent-color);
-        margin-bottom: 0.25rem;
-      }
-      
-      .result-text {
-        font-size: 0.9rem;
-        line-height: 1.6;
-      }
-    }
-  }
-  
-  // Notlar
-  .notes-list {
-    margin-top: 1rem;
     
-    .note-item {
-      position: relative;
-      margin-bottom: 1rem;
-      padding: 1rem;
-      border-left: 4px solid;
-      
-      .note-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 0.5rem;
-        
-        .note-page {
-          font-size: 0.875rem;
-          color: var(--accent-color);
-          font-weight: 600;
-        }
-        
-        .delete-btn {
-          background: none;
-          border: none;
-          font-size: 1.5rem;
-          cursor: pointer;
-          color: var(--text-secondary);
-          transition: all 0.3s;
-          
-          &:hover {
-            color: #e74c3c;
-          }
-        }
-      }
-      
-      .note-content {
-        margin-bottom: 0.5rem;
-        line-height: 1.6;
-      }
-      
-      .note-date {
-        font-size: 0.8rem;
-        color: var(--text-light);
-      }
-    }
-  }
-  
-  // Ayarlar
-  .setting-group {
-    margin-bottom: 2rem;
-    
-    label {
-      display: block;
-      margin-bottom: 0.75rem;
-      font-weight: 500;
-      color: var(--text-secondary);
+    .separator {
+      color: #999;
     }
     
-    .font-size-control {
+    .page-nav {
       display: flex;
       align-items: center;
-      gap: 1rem;
+      gap: 5px;
+      margin-left: auto;
       
-      .size-btn {
+      button {
+        width: 24px;
+        height: 24px;
+        background: #fff;
+        border: 1px solid #999;
+        cursor: pointer;
+        font-size: 12px;
+        line-height: 1;
+        padding: 0;
+        
+        &:hover:not(:disabled) {
+          background: #f0f0f0;
+        }
+        
+        &:disabled {
+          opacity: 0.5;
+          cursor: default;
+        }
+      }
+      
+      .page-input {
         width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        border: 2px solid var(--primary-color);
-        background: white;
-        cursor: pointer;
-        font-weight: 600;
-        transition: all 0.3s;
-        
-        &:hover {
-          background: var(--primary-color);
-          color: white;
-        }
-      }
-      
-      .size-value {
-        min-width: 60px;
+        height: 24px;
         text-align: center;
-        font-weight: 600;
+        border: 1px solid #999;
+        font-size: 12px;
+        padding: 0 2px;
       }
-    }
-    
-    .setting-select {
-      width: 100%;
-      padding: 0.75rem;
-      border: 2px solid var(--bg-secondary);
-      border-radius: 8px;
-      font-size: 1rem;
-      background: white;
       
-      &:focus {
-        outline: none;
-        border-color: var(--primary-color);
+      .page-total {
+        font-size: 12px;
+        color: #666;
       }
     }
+  }
+}
+
+// İçerik Alanı
+.content-area {
+  flex: 1;
+  background: #fff;
+  overflow-y: auto;
+  padding: 20px 30px;
+  
+  .content-wrapper {
+    max-width: 700px;
+    margin: 0 auto;
+    line-height: 1.6;
     
-    .setting-range {
-      width: 100%;
-      margin: 0.5rem 0;
-    }
-    
-    .range-value {
-      display: block;
+    // Başlık
+    .page-header {
       text-align: center;
-      margin-top: 0.5rem;
-      font-size: 0.9rem;
-      color: var(--text-secondary);
+      margin-bottom: 30px;
+      
+      h1 {
+        font-size: 24px;
+        color: #cc0000;
+        margin: 0 0 10px 0;
+      }
+      
+      h2 {
+        font-size: 18px;
+        color: #333;
+        margin: 0 0 5px 0;
+        font-weight: normal;
+      }
+      
+      .author {
+        font-size: 14px;
+        color: #666;
+        font-style: italic;
+      }
     }
     
-    .theme-options {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 0.5rem;
+    // İçerik
+    .page-content {
+      font-size: 14px;
+      color: #333;
       
-      .theme-btn {
-        padding: 0.75rem;
-        border: 2px solid var(--bg-secondary);
-        border-radius: 8px;
-        background: white;
-        cursor: pointer;
-        transition: all 0.3s;
+      p {
+        margin: 0 0 15px 0;
+        text-align: justify;
+      }
+      
+      // Arapça
+      .arabic {
+        font-family: 'Traditional Arabic', 'Arabic Typesetting', serif;
+        font-size: 18px;
+        text-align: center;
+        direction: rtl;
+        margin: 20px 0;
+        color: #006600;
+        line-height: 1.8;
+      }
+      
+      // Dipnot
+      .footnote {
+        font-size: 12px;
+        color: #666;
+        border-top: 1px solid #ddd;
+        margin-top: 10px;
+        padding-top: 10px;
+        
+        sup {
+          color: #cc0000;
+        }
+      }
+      
+      // Vurgular
+      strong, b {
+        color: #000;
+        font-weight: bold;
+      }
+      
+      em, i {
+        font-style: italic;
+      }
+      
+      // Alıntı
+      blockquote {
+        margin: 15px 0;
+        padding-left: 20px;
+        border-left: 3px solid #ccc;
+        color: #555;
+        font-style: italic;
+      }
+    }
+  }
+}
+
+// Alt Bar
+.bottom-bar {
+  height: 25px;
+  background: #f0f0f0;
+  border-top: 1px solid #ccc;
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  font-size: 12px;
+  color: #666;
+  
+  .status-text {
+    margin-right: auto;
+  }
+  
+  .page-info {
+    margin-left: auto;
+  }
+}
+
+// Arama kutusu (popup)
+.search-box {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 400px;
+  background: #fff;
+  border: 1px solid #999;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+  padding: 15px;
+  z-index: 1000;
+  
+  .search-header {
+    font-weight: bold;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+      color: #666;
+      
+      &:hover {
+        color: #000;
+      }
+    }
+  }
+  
+  .search-input {
+    width: 100%;
+    padding: 5px;
+    border: 1px solid #999;
+    margin-bottom: 10px;
+  }
+  
+  .search-options {
+    margin-bottom: 10px;
+    font-size: 12px;
+    
+    label {
+      margin-right: 15px;
+      
+      input {
+        margin-right: 3px;
+      }
+    }
+  }
+  
+  .search-buttons {
+    text-align: right;
+    
+    button {
+      padding: 5px 15px;
+      margin-left: 5px;
+      background: #f0f0f0;
+      border: 1px solid #999;
+      cursor: pointer;
+      font-size: 12px;
+      
+      &:hover {
+        background: #e0e0e0;
+      }
+      
+      &.primary {
+        background: #0066cc;
+        color: #fff;
+        border-color: #0052a3;
         
         &:hover {
-          border-color: var(--primary-color);
-        }
-        
-        &.active {
-          background: var(--primary-color);
-          color: white;
-          border-color: var(--primary-color);
+          background: #0052a3;
         }
       }
     }
   }
 }
 
-// Kitap görüntüleme
-.book-display {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem;
-  transition: margin-left 0.3s;
-  
-  &.with-panel {
-    margin-left: 0;
-  }
-}
-
-.book-container {
-  width: 100%;
-  max-width: 1200px;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-.book-pages {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-bottom: 2rem;
-  
-  .page-spread {
-    display: flex;
-    gap: 0;
-    height: 100%;
-    max-height: 800px;
-    
-    .page {
-      width: 450px;
-      height: 100%;
-      background: var(--bg-card);
-      padding: 3rem;
-      position: relative;
-      overflow: hidden;
-      
-      &.page-left {
-        box-shadow: -10px 0 20px rgba(0, 0, 0, 0.1);
-        border-radius: 20px 0 0 20px;
-      }
-      
-      &.page-right {
-        box-shadow: 10px 0 20px rgba(0, 0, 0, 0.1);
-        border-radius: 0 20px 20px 0;
-      }
-      
-      .page-header {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 2rem;
-        font-size: 0.875rem;
-        color: var(--text-secondary);
-        
-        .page-number {
-          font-weight: 600;
-          color: var(--accent-color);
-        }
-      }
-      
-      .page-content {
-        height: calc(100% - 100px);
-        overflow-y: auto;
-        line-height: inherit;
-        text-align: justify;
-        
-        &::-webkit-scrollbar {
-          width: 6px;
-        }
-        
-        p {
-          margin-bottom: 1.5rem;
-          text-indent: 2rem;
-        }
-      }
-      
-      .page-footer {
-        position: absolute;
-        bottom: 2rem;
-        left: 50%;
-        transform: translateX(-50%);
-        
-        .ornament {
-          color: var(--accent-color);
-          font-size: 1.25rem;
-        }
-      }
-    }
-  }
-}
-
-// Sayfa kontrolleri
-.page-controls {
-  display: flex;
-  align-items: center;
-  gap: 2rem;
-  padding: 1rem 2rem;
-  background: var(--bg-card);
-  border-radius: 50px;
-  box-shadow: var(--shadow-md);
-  
-  .page-nav {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    border: none;
-    background: var(--primary-color);
-    color: white;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s;
-    
-    &:hover:not(:disabled) {
-      transform: scale(1.1);
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-    }
-    
-    &:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-  }
-  
-  .page-slider {
-    flex: 1;
-    max-width: 400px;
-    
-    .slider {
-      width: 100%;
-      margin-bottom: 0.5rem;
-    }
-    
-    .page-indicator {
-      text-align: center;
-      font-size: 0.9rem;
-      color: var(--text-secondary);
-    }
-  }
-}
-
-// Seçim menüsü
-.selection-menu {
-  position: fixed;
-  background: var(--bg-card);
-  border-radius: 8px;
-  box-shadow: var(--shadow-lg);
-  display: flex;
-  padding: 0.5rem;
-  gap: 0.25rem;
-  z-index: 200;
-  
-  .menu-btn {
-    padding: 0.5rem 1rem;
-    border: none;
-    background: none;
-    cursor: pointer;
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    transition: all 0.3s;
-    
-    &:hover {
-      background: var(--bg-secondary);
-    }
-  }
-}
-
-// Modal
-.modal-overlay {
+// Overlay
+.overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 300;
-  
-  .modal-content {
-    width: 90%;
-    max-width: 500px;
-    max-height: 90vh;
-    overflow-y: auto;
-  }
-  
-  .modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1.5rem;
-    border-bottom: 1px solid var(--bg-secondary);
-    
-    h3 {
-      margin: 0;
-    }
-    
-    .close-btn {
-      background: none;
-      border: none;
-      font-size: 2rem;
-      cursor: pointer;
-      color: var(--text-secondary);
-      
-      &:hover {
-        color: var(--text-primary);
-      }
-    }
-  }
-  
-  .modal-body {
-    padding: 1.5rem;
-    
-    .selected-text {
-      background: var(--bg-secondary);
-      padding: 1rem;
-      border-radius: 8px;
-      margin-bottom: 1.5rem;
-      
-      label {
-        display: block;
-        margin-bottom: 0.5rem;
-        font-weight: 500;
-        color: var(--text-secondary);
-      }
-      
-      p {
-        margin: 0;
-        font-style: italic;
-      }
-    }
-    
-    .form-group {
-      margin-bottom: 1.5rem;
-      
-      label {
-        display: block;
-        margin-bottom: 0.5rem;
-        font-weight: 500;
-      }
-      
-      .note-textarea {
-        width: 100%;
-        padding: 0.75rem;
-        border: 2px solid var(--bg-secondary);
-        border-radius: 8px;
-        resize: vertical;
-        font-family: inherit;
-        
-        &:focus {
-          outline: none;
-          border-color: var(--primary-color);
-        }
-      }
-    }
-    
-    .color-picker {
-      display: flex;
-      gap: 0.5rem;
-      
-      .color-option {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        cursor: pointer;
-        transition: all 0.3s;
-        
-        &:hover {
-          transform: scale(1.1);
-        }
-        
-        &.selected {
-          box-shadow: 0 0 0 3px var(--primary-color);
-        }
-      }
-    }
-  }
-  
-  .modal-footer {
-    padding: 1.5rem;
-    border-top: 1px solid var(--bg-secondary);
-    display: flex;
-    justify-content: flex-end;
-    gap: 1rem;
-  }
-}
-
-// Tam ekran kontrolleri
-.fullscreen-controls {
-  position: fixed;
-  top: 1rem;
-  right: 1rem;
-  z-index: 400;
-  
-  .exit-fullscreen {
-    padding: 0.75rem 1.5rem;
-    background: rgba(0, 0, 0, 0.8);
-    color: white;
-    border: none;
-    border-radius: 30px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    transition: all 0.3s;
-    
-    &:hover {
-      background: rgba(0, 0, 0, 0.9);
-    }
-  }
+  background: rgba(0,0,0,0.3);
+  z-index: 999;
 }
 
 // Yükleniyor
-.loading-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
+.loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
   
-  p {
-    font-size: 1.1rem;
-    color: var(--text-secondary);
-  }
-}
-
-// Animasyonlar
-.modal-enter-active, .modal-leave-active {
-  transition: all 0.3s ease;
-}
-
-.modal-enter-from, .modal-leave-to {
-  opacity: 0;
-  transform: scale(0.9);
-}
-
-// Responsive
-@media (max-width: 1200px) {
-  .book-pages .page-spread .page {
-    width: 400px;
-    padding: 2rem;
-  }
-}
-
-@media (max-width: 992px) {
-  .side-panel {
-    width: 300px;
+  .spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #0066cc;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 10px;
   }
   
-  .book-pages .page-spread {
-    flex-direction: column;
-    gap: 2rem;
-    
-    .page {
-      width: 100%;
-      max-width: 500px;
-      border-radius: 20px;
-      
-      &.page-left {
-        display: none;
-      }
-    }
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
   }
 }
 
+// Mobil
 @media (max-width: 768px) {
-  .reader-header {
-    padding: 1rem;
-    
-    .header-left .book-info .book-title {
-      font-size: 1.2rem;
-    }
-    
-    .header-controls {
-      gap: 0.25rem;
-      
-      .control-btn {
-        padding: 0.5rem;
-      }
-    }
-  }
-  
-  .side-panel {
+  .left-panel {
     position: fixed;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    z-index: 200;
-    transform: translateX(-100%);
-    transition: transform 0.3s;
+    left: -250px;
+    z-index: 100;
+    height: 100%;
+    transition: left 0.3s;
     
-    &.active {
-      transform: translateX(0);
+    &.show {
+      left: 0;
     }
   }
   
-  .book-display {
-    padding: 1rem;
+  .mobile-menu-btn {
+    display: block;
+    position: fixed;
+    top: 5px;
+    left: 5px;
+    z-index: 101;
+    width: 30px;
+    height: 30px;
+    background: #f0f0f0;
+    border: 1px solid #ccc;
+    cursor: pointer;
+  }
+}
+
+@media (min-width: 769px) {
+  .mobile-menu-btn {
+    display: none;
+  }
+}
+
+// Print
+@media print {
+  .left-panel,
+  .top-bar,
+  .bottom-bar {
+    display: none;
   }
   
-  .page-controls {
-    padding: 0.75rem 1rem;
-    
-    .page-nav {
-      width: 40px;
-      height: 40px;
-    }
+  .content-area {
+    padding: 0;
   }
 }
